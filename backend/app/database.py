@@ -39,4 +39,5 @@ async def init_db():
     async with engine.begin() as conn:
         # Import models to ensure they're registered with Base
         from app.models import user  # noqa: F401
+        from app.models import notification  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)
