@@ -1,11 +1,19 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.database import init_db
 from app.api.health import router as health_router
+from app.api.auth import router as auth_router
+
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
@@ -36,8 +44,18 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Rate limiter state
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # Root health endpoint (for simple checks)
+    @app.get("/health")
+    async def root_health():
+        return {"status": "healthy"}
+
     # Include routers
     app.include_router(health_router, prefix="/api/v1")
+    app.include_router(auth_router, prefix="/api/v1")
 
     return app
 

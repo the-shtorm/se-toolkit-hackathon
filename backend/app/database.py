@@ -38,5 +38,5 @@ async def init_db():
     """Initialize database connection and create tables if they don't exist."""
     async with engine.begin() as conn:
         # Import models to ensure they're registered with Base
-        # from app.models import user, notification  # Will be added when models are created
+        from app.models import user  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)
