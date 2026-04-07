@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import Notifications from './pages/Notifications';
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -15,7 +15,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 function PublicOnlyRoute({ children }: { children: JSX.Element }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/notifications" replace />;
   }
   return children;
 }
@@ -41,14 +41,14 @@ export default function App() {
           }
         />
         <Route
-          path="/dashboard"
+          path="/notifications"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Notifications />
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/notifications" replace />} />
       </Routes>
     </BrowserRouter>
   );

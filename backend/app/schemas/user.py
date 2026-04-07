@@ -35,3 +35,10 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = Field(None, min_length=3, max_length=100)
     is_active: Optional[bool] = None
+
+
+class LoginResponse(BaseModel):
+    """Schema for login response (includes token for API testing)."""
+    message: str
+    access_token: str
+    token_type: str = "bearer"

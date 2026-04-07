@@ -13,6 +13,26 @@ from app.models.notification import (
     DeliveryStatusEnum,
 )
 from app.schemas.notification import NotificationCreate, NotificationResponse
+from app.core.websocket import manager
+
+
+async def _broadcast_notification(db: AsyncSession, notification: Notification, event: str) -> None:
+    """Broadcast notification event to all recipients via WebSocket."""
+    result = await db.execute(
+        select(NotificationRecipient.user_id).where(
+            NotificationRecipient.notification_id == notification.id
+        )
+    )
+    recipient_ids = [row[0] for row in result.all()]
+
+    payload = {
+        "type": f"notification:{event}",
+        "data": NotificationResponse.model_validate(notification).model_dump(mode="json"),
+    }
+
+    for user_id in recipient_ids:
+        if manager.get_active_connections(user_id) > 0:
+            await manager.send_personal(payload, user_id)
 
 
 async def create_notification(
@@ -43,6 +63,9 @@ async def create_notification(
 
     await db.commit()
     await db.refresh(notification)
+
+    # Broadcast to WebSocket
+    await _broadcast_notification(db, notification, "new")
 
     return notification
 
@@ -122,6 +145,9 @@ async def mark_notification_as_read(
 
     await db.commit()
     await db.refresh(notification)
+
+    # Broadcast to WebSocket
+    await _broadcast_notification(db, notification, "read")
 
     return notification
 

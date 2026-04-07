@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.schemas.user import UserCreate, UserLogin, UserResponse, LoginResponse
 from app.core.security import hash_password, verify_password, create_access_token, decode_access_token
 from app.config import settings
 from app.api.deps import get_current_user, CurrentUser
@@ -64,7 +64,7 @@ async def register(
     return new_user
 
 
-@router.post("/login", summary="Login and receive authentication cookie")
+@router.post("/login", response_model=LoginResponse, summary="Login and receive authentication cookie")
 @limiter.limit("5/minute")
 async def login(
     request: Request,
@@ -91,8 +91,14 @@ async def login(
     # Create access token (convert UUID to string for JSON serialization)
     access_token = create_access_token(data={"sub": str(user.id)})
 
-    # Create response with HTTPOnly cookie
-    response = JSONResponse(content={"message": "Login successful"})
+    # Create response with HTTPOnly cookie AND token in body for API testing
+    response = JSONResponse(
+        content={
+            "message": "Login successful",
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
+    )
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -120,3 +126,15 @@ async def logout(response: Response):
 async def get_me(current_user: CurrentUser):
     """Return the currently authenticated user's information."""
     return current_user
+
+
+@router.get("/ws-token", summary="Get authentication token for WebSocket")
+async def get_ws_token(current_user: CurrentUser):
+    """
+    Return a JWT token for WebSocket authentication.
+    Since HTTP-only cookies can't be read by frontend JS, this endpoint
+    provides the token needed to authenticate WebSocket connections.
+    """
+    from app.core.security import create_access_token
+    token = create_access_token(data={"sub": str(current_user.id)})
+    return {"token": token}
