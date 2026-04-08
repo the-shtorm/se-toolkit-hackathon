@@ -2,160 +2,184 @@
 
 A full-stack notification management system with FastAPI backend, React frontend, and PostgreSQL database.
 
-## Version 1: Real-Time Notification Dashboard (MVP)
+## Version 1: Real-Time Notification Dashboard (MVP) ✅ COMPLETE
 
-A functioning notification system with real-time WebSocket delivery.
+A functioning real-time notification system with WebSocket delivery.
 
 ### Features
-- ✅ User authentication (register/login)
-- ✅ Create notifications with priority levels
-- ✅ Real-time delivery via WebSocket
-- ✅ Notification list with mark-as-read
+- ✅ User authentication (register/login) with JWT + HTTP-only cookies
+- ✅ Rate limiting (5 attempts/min) on auth endpoints
+- ✅ Argon2 password hashing
+- ✅ Create notifications with priority levels (low, medium, high, critical)
+- ✅ Real-time delivery via WebSocket with 30s heartbeat ping/pong
+- ✅ Notification list with pagination, filtering, and mark-as-read
+- ✅ Toast popup for new notifications
+- ✅ WebSocket reconnection with exponential backoff
 - ✅ Clean, responsive UI with TailwindCSS
 
 ### Tech Stack
-- **Backend**: FastAPI + SQLAlchemy (async) + Alembic
-- **Frontend**: React 18 + TypeScript + Vite + TailwindCSS
+- **Backend**: FastAPI + SQLAlchemy (async) + SlowApi (rate limiting)
+- **Frontend**: React 18 + TypeScript + Vite + TailwindCSS + Zustand
 - **Database**: PostgreSQL 16
+- **Real-time**: WebSockets with connection manager
 - **Infrastructure**: Docker & Docker Compose
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 - Docker & Docker Compose
-- (Optional) WSL with ZSH and UV for local Python development
 
 ### Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd smart-notification-manager
-   ```
-
-2. **Configure environment variables**
+1. **Configure environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env with your preferred settings
    ```
 
-3. **Start all services**
+2. **Start all services**
    ```bash
-   docker-compose up -d
+   docker compose up -d --build
    ```
 
-4. **Access the services**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-   - Health Check: http://localhost:8000/api/v1/health
-   - PostgreSQL: localhost:5432
+3. **Seed demo data (5 users, 50 notifications)**
+   ```bash
+   docker compose exec backend sh -c "cd /app && PYTHONPATH=/app python scripts/seed.py"
+   ```
 
-### Local Development (WSL with ZSH + UV)
+4. **Access the application**
+   - **Frontend**: http://localhost:3000
+   - **API Docs**: http://localhost:8000/docs
+   - **Health**: http://localhost:8000/api/v1/health
 
-If you prefer to run the backend locally:
+### Demo Credentials
 
-```bash
-# Navigate to backend directory
-cd backend
+| Username | Email              | Password   |
+|----------|--------------------|------------|
+| alice    | alice@demo.com     | demo1234   |
+| bob      | bob@demo.com       | demo1234   |
+| charlie  | charlie@demo.com   | demo1234   |
+| diana    | diana@demo.com     | demo1234   |
+| eve      | eve@demo.com       | demo1234   |
 
-# Create virtual environment with UV
-uv venv
-source .venv/bin/activate
+### Services
 
-# Install dependencies
-uv pip install -r requirements.txt
+| Service    | Port  | Description               |
+|------------|-------|---------------------------|
+| frontend   | 3000  | React Vite dev server     |
+| backend    | 8000  | FastAPI API server        |
+| db         | 5432  | PostgreSQL database       |
 
-# Run the development server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+---
 
-### Docker Services
+## API Endpoints (V1)
 
-| Service    | Port  | Description              |
-|------------|-------|--------------------------|
-| backend    | 8000  | FastAPI API server       |
-| frontend   | 3000  | React development server |
-| db         | 5432  | PostgreSQL database      |
+### Health
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET`  | `/health` | Simple health check |
+| `GET`  | `/api/v1/health` | Detailed health with service info |
+
+### Authentication
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/auth/register` | Register new user |
+| `POST` | `/api/v1/auth/login` | Login (returns token + sets HTTP-only cookie) |
+| `POST` | `/api/v1/auth/logout` | Logout and clear cookie |
+| `GET`  | `/api/v1/auth/me` | Get current user info |
+| `GET`  | `/api/v1/auth/ws-token` | Get JWT token for WebSocket auth |
+
+### Notifications
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/notifications` | Create notification |
+| `GET`  | `/api/v1/notifications` | List (paginated, filterable by status) |
+| `GET`  | `/api/v1/notifications/{id}` | Get by ID |
+| `PUT`  | `/api/v1/notifications/{id}/read` | Mark as read |
+| `PUT`  | `/api/v1/notifications/read-all` | Mark all as read |
+| `GET`  | `/api/v1/notifications/stats` | Get unread count |
+
+### WebSocket
+| Protocol | Path | Description |
+|----------|------|-------------|
+| `WS`     | `/ws/notifications?token=<jwt>` | Real-time notification stream |
+
+---
 
 ## Project Structure
 
 ```
-smart-notification-manager/
-├── backend/                 # FastAPI backend
+hackaton/
+├── backend/
 │   ├── app/
-│   │   ├── api/            # API routes
-│   │   ├── core/           # Security, WebSocket manager
-│   │   ├── models/         # SQLAlchemy models
-│   │   ├── schemas/        # Pydantic schemas
-│   │   ├── services/       # Business logic
-│   │   ├── config.py       # Settings
-│   │   ├── database.py     # DB connection
-│   │   └── main.py         # FastAPI app
-│   ├── alembic/            # Database migrations
+│   │   ├── api/             # Routes: auth, notifications, websocket, health
+│   │   ├── core/            # security.py, websocket.py (ConnectionManager)
+│   │   ├── models/          # SQLAlchemy: user.py, notification.py
+│   │   ├── schemas/         # Pydantic: user.py, notification.py
+│   │   ├── services/        # notification_service.py
+│   │   ├── config.py        # Environment settings
+│   │   ├── database.py      # Async DB engine & session
+│   │   └── main.py          # FastAPI app entry point
+│   ├── scripts/
+│   │   └── seed.py          # Demo data generator
 │   ├── Dockerfile
-│   ├── requirements.txt
-│   └── alembic.ini
-├── frontend/               # React frontend
+│   └── requirements.txt
+├── frontend/
 │   ├── src/
+│   │   ├── api/             # Axios client, auth, notifications, ws
+│   │   ├── hooks/           # useAuth, useWebSocket
+│   │   ├── pages/           # Login, Register, Notifications
+│   │   ├── stores/          # Zustand: authStore, notificationStore
+│   │   └── types/           # TypeScript interfaces
 │   ├── Dockerfile
-│   ├── package.json
 │   └── vite.config.ts
-├── scripts/                # Database & utility scripts
+├── scripts/
 │   └── init-db.sql
 ├── docker-compose.yml
 ├── .env.example
 └── PLAN.md
 ```
 
-## API Endpoints (V1)
+---
 
-### Health Check
-- `GET /api/v1/health` - Service health status
-- `GET /api/v1/` - Root endpoint
+## Development
 
-### Authentication (Coming Soon)
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/logout`
-- `GET /api/v1/auth/me`
+### Backend auto-reload
+Changes to Python files trigger uvicorn reload automatically.
 
-### Notifications (Coming Soon)
-- `GET /api/v1/notifications`
-- `POST /api/v1/notifications`
-- `PUT /api/v1/notifications/{id}/read`
+### Frontend HMR
+Vite hot module replacement updates the UI instantly.
 
-### WebSocket (Coming Soon)
-- `WS /ws/notifications` - Real-time notification stream
-
-## Development Workflow
-
-### Backend Changes
-The backend auto-reloads when Python files change (uvicorn --reload).
-
-### Frontend Changes
-The frontend auto-reloads via Vite's HMR.
-
-### Database Migrations
-
+### Reseed database
 ```bash
-# Enter the backend container
-docker-compose exec backend bash
-
-# Create a new migration
-alembic revision --autogenerate -m "description"
-
-# Apply migrations
-alembic upgrade head
+docker compose exec backend sh -c "cd /app && PYTHONPATH=/app python scripts/seed.py"
 ```
 
-## Checkpoint 1.1 Status
+### API testing with Swagger UI
+1. Open http://localhost:8000/docs
+2. Register a user via `POST /api/v1/auth/register`
+3. Login via `POST /api/v1/auth/login` — copy `access_token` from response
+4. Use the `/api/v1/auth/ws-token` endpoint to get a WebSocket token
+5. All subsequent requests auto-authenticate via the HTTP-only cookie
 
-✅ All 3 services start successfully with `docker-compose up -d`  
-✅ Can access PostgreSQL from host (localhost:5432)  
-✅ Basic docker-compose.yml committed  
-✅ Health check endpoint working  
-✅ Frontend accessible and displaying backend status
+### API testing with curl
+```bash
+# Login (saves cookie)
+curl -c cookies.txt -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@demo.com","password":"demo1234"}'
+
+# List notifications (uses saved cookie)
+curl -b cookies.txt http://localhost:8000/api/v1/notifications
+
+# Create notification
+curl -b cookies.txt -X POST http://localhost:8000/api/v1/notifications \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Test","message":"Hello","priority":"high"}'
+```
+
+---
 
 ## License
 
