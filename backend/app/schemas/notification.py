@@ -26,6 +26,7 @@ class NotificationCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     message: str = Field(..., min_length=1, max_length=5000)
     priority: PriorityEnum = PriorityEnum.medium
+    group_id: Optional[UUID] = None
 
 
 class NotificationResponse(BaseModel):
@@ -36,6 +37,7 @@ class NotificationResponse(BaseModel):
     priority: PriorityEnum
     status: NotificationStatusEnum
     created_by: UUID
+    group_id: Optional[UUID] = None
     created_at: Optional[datetime] = None
     sent_at: Optional[datetime] = None
     read_at: Optional[datetime] = None

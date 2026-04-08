@@ -29,7 +29,7 @@ async def create_notification(
     current_user: CurrentUser,
     db: CurrentDB,
 ):
-    """Create a new notification. The creator is automatically added as recipient."""
+    """Create a notification. Optionally send to a group (all members receive it)."""
     return await notification_service.create_notification(
         db=db,
         notification_data=notification_data,
@@ -46,6 +46,7 @@ async def list_notifications(
     current_user: CurrentUser,
     db: CurrentDB,
     status_filter: Optional[NotificationStatusEnum] = Query(None, description="Filter by status"),
+    group_id: Optional[str] = Query(None, description="Filter by group"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
 ):
@@ -56,6 +57,7 @@ async def list_notifications(
         status_filter=status_filter,
         page=page,
         page_size=page_size,
+        group_id=group_id,
     )
 
     return NotificationListResponse(
