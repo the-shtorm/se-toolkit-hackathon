@@ -103,3 +103,50 @@ export interface GroupListResponse {
 }
 
 export interface GroupMemberResponse extends GroupMember {}
+
+export interface EventCreate {
+  name: string;
+  description?: string;
+  title: string;
+  message: string;
+  priority?: string;
+  group_id?: string;
+  scheduled_at?: string;
+  is_recurring?: boolean;
+  recurrence_rule?: string;
+}
+
+export interface EventUpdate {
+  name?: string;
+  description?: string;
+  title?: string;
+  message?: string;
+  priority?: string;
+  group_id?: string;
+  scheduled_at?: string;
+  is_recurring?: boolean;
+  recurrence_rule?: string;
+}
+
+export interface EventResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  title: string;
+  message: string;
+  priority: string;
+  created_by: string;
+  group_id: string | null;
+  scheduled_at: string | null;
+  is_recurring: boolean;
+  recurrence_rule: string | null;
+  notification_id: string | null;
+  created_at: string | null;
+}
+
+export interface EventListResponse {
+  items: EventResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}

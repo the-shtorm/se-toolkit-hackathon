@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Notifications from './pages/Notifications';
 import Groups from './pages/Groups';
+import Events from './pages/Events';
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -54,6 +55,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Groups />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <Events />
             </ProtectedRoute>
           }
         />

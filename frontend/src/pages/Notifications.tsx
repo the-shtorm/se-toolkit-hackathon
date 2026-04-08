@@ -117,9 +117,8 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold text-gray-800">Smart Notification Manager</h1>
               <span className="text-sm font-semibold text-blue-600">Notifications</span>
-              <Link to="/groups" className="text-sm text-gray-600 hover:text-blue-600">
-                Groups
-              </Link>
+              <Link to="/groups" className="text-sm text-gray-600 hover:text-blue-600">Groups</Link>
+              <Link to="/events" className="text-sm text-gray-600 hover:text-blue-600">Events</Link>
             </div>
             <div className="flex items-center space-x-4">
               {wsStatusIndicator()}

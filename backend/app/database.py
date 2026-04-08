@@ -41,4 +41,5 @@ async def init_db():
         from app.models import user  # noqa: F401
         from app.models import notification  # noqa: F401
         from app.models import group  # noqa: F401
+        from app.models import event  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)

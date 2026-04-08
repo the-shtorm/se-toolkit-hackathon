@@ -43,5 +43,27 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
 
+  # Redis (V2 - for Celery & WebSocket pub/sub)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Celery Worker (V2)
+  celery-worker:
+    image: hackaton-backend
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/notifications
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./backend:/app
+    command: celery -A app.celery_app worker --loglevel=info
+
 volumes:
   postgres_data:
+  redis_data:

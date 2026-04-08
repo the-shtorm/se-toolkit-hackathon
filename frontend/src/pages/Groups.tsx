@@ -92,6 +92,7 @@ export default function GroupsPage() {
                 Notifications
               </Link>
               <span className="text-sm font-semibold text-blue-600">Groups</span>
+              <Link to="/events" className="text-sm text-gray-600 hover:text-blue-600">Events</Link>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Welcome, {user?.username}</span>

@@ -47,15 +47,17 @@ CREATE TABLE IF NOT EXISTS notification_recipients (
     UNIQUE(notification_id, user_id)
 );
 
--- Create indexes for better query performance
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_notifications_created_by ON notifications(created_by);
-CREATE INDEX idx_notifications_status ON notifications(status);
-CREATE INDEX idx_notifications_created_at ON notifications(created_at);
-CREATE INDEX idx_notification_recipients_notification_id ON notification_recipients(notification_id);
-CREATE INDEX idx_notification_recipients_user_id ON notification_recipients(user_id);
-CREATE INDEX idx_notification_recipients_delivery_status ON notification_recipients(delivery_status);
+-- Note: Most indexes are now created automatically by SQLAlchemy via index=True on columns.
+-- This script is kept for reference. When using Alembic migrations, 
+-- tables and indexes are managed via migrations, not this script.
+-- The indexes below are created by SQLAlchemy models:
+--   ix_users_id, ix_users_email, ix_users_username
+--   ix_notifications_id, ix_notifications_created_by, ix_notifications_group_id
+--   ix_notification_recipients_id, ix_notification_recipients_notification_id, ix_notification_recipients_user_id
+--   ix_notification_groups_id, ix_group_members_id, ix_events_id
+--
+-- Create additional custom indexes for query performance (if not already via SQLAlchemy):
+-- (All needed indexes are already in the SQLAlchemy models)
 
 -- Update timestamp trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
