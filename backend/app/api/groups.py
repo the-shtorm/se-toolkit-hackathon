@@ -128,17 +128,20 @@ async def list_groups(
     groups_q = base.order_by(NotificationGroup.created_at.desc()).offset(offset).limit(page_size)
     groups = (await db.execute(groups_q)).scalars().all()
 
-    items = [
-        GroupResponse(
+    # Fetch member counts for each group
+    items = []
+    for g in groups:
+        count_q = select(func.count()).where(GroupMember.group_id == g.id)
+        mc = (await db.execute(count_q)).scalar() or 0
+        items.append(GroupResponse(
             id=g.id,
             name=g.name,
             description=g.description,
             created_by=g.created_by,
             created_at=g.created_at,
             updated_at=g.updated_at,
-        )
-        for g in groups
-    ]
+            member_count=mc,
+        ))
 
     return GroupListResponse(items=items, total=total, page=page, page_size=page_size)
 

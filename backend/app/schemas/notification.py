@@ -38,6 +38,7 @@ class NotificationResponse(BaseModel):
     status: NotificationStatusEnum
     created_by: UUID
     group_id: Optional[UUID] = None
+    group_name: Optional[str] = None
     created_at: Optional[datetime] = None
     sent_at: Optional[datetime] = None
     read_at: Optional[datetime] = None

@@ -30,6 +30,8 @@ export interface Notification {
   priority: Priority;
   status: NotificationStatus;
   created_by: string;
+  group_id: string | null;
+  group_name: string | null;
   created_at: string | null;
   sent_at: string | null;
   read_at: string | null;
@@ -52,3 +54,52 @@ export interface WSMessage {
   type: string;
   data: Notification | Record<string, unknown>;
 }
+
+export type MemberRole = 'admin' | 'member';
+
+export interface GroupMember {
+  id: string;
+  user_id: string;
+  username: string;
+  email: string;
+  role: MemberRole;
+  joined_at: string | null;
+}
+
+export interface GroupCreate {
+  name: string;
+  description?: string;
+}
+
+export interface GroupUpdate {
+  name?: string;
+  description?: string;
+}
+
+export interface GroupResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  created_by: string;
+  created_at: string | null;
+  updated_at: string | null;
+  member_count: number;
+}
+
+export interface GroupDetailResponse extends GroupResponse {
+  members: GroupMember[];
+}
+
+export interface AddMemberRequest {
+  user_id: string;
+  role: MemberRole;
+}
+
+export interface GroupListResponse {
+  items: GroupResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface GroupMemberResponse extends GroupMember {}

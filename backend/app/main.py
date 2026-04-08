@@ -13,6 +13,7 @@ from app.api.auth import router as auth_router
 from app.api.notifications import router as notifications_router
 from app.api.websocket import router as websocket_router
 from app.api.groups import router as groups_router
+from app.api.users import router as users_router
 
 
 # Initialize rate limiter
@@ -61,6 +62,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(notifications_router, prefix="/api/v1")
     app.include_router(groups_router, prefix="/api/v1")
+    app.include_router(users_router, prefix="/api/v1")
     app.include_router(websocket_router)  # WebSocket has its own path prefix
 
     return app

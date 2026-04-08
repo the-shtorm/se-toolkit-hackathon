@@ -51,7 +51,7 @@ async def list_notifications(
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
 ):
     """Get paginated list of notifications for the current user."""
-    notifications, total = await notification_service.get_user_notifications(
+    enriched_notifications, total = await notification_service.get_user_notifications(
         db=db,
         user_id=current_user.id,
         status_filter=status_filter,
@@ -62,7 +62,11 @@ async def list_notifications(
 
     return NotificationListResponse(
         items=[
-            NotificationResponse.model_validate(n) for n in notifications
+            {
+                **NotificationResponse.model_validate(n).model_dump(),
+                "group_name": gn,
+            }
+            for n, gn in enriched_notifications
         ],
         total=total,
         page=page,

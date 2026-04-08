@@ -26,9 +26,23 @@ async def _broadcast_notification(db: AsyncSession, notification: Notification, 
     )
     recipient_ids = [row[0] for row in result.all()]
 
+    # Fetch group name if applicable
+    group_name = None
+    if notification.group_id:
+        from app.models.group import NotificationGroup
+        grp_result = await db.execute(
+            select(NotificationGroup.name).where(NotificationGroup.id == notification.group_id)
+        )
+        grp = grp_result.scalar_one_or_none()
+        if grp:
+            group_name = grp
+
     payload = {
         "type": f"notification:{event}",
-        "data": NotificationResponse.model_validate(notification).model_dump(mode="json"),
+        "data": {
+            **NotificationResponse.model_validate(notification).model_dump(mode="json"),
+            "group_name": group_name,
+        },
     }
 
     for user_id in recipient_ids:
@@ -139,7 +153,21 @@ async def get_user_notifications(
     result = await db.execute(query)
     notifications = result.scalars().all()
 
-    return list(notifications), total
+    # Enrich with group names
+    enriched = []
+    for n in notifications:
+        gname = None
+        if n.group_id:
+            from app.models.group import NotificationGroup
+            grp = await db.execute(
+                select(NotificationGroup.name).where(NotificationGroup.id == n.group_id)
+            )
+            g = grp.scalar_one_or_none()
+            if g:
+                gname = g
+        enriched.append((n, gname))
+
+    return enriched, total
 
 
 async def mark_notification_as_read(
