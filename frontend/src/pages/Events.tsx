@@ -170,6 +170,8 @@ export default function EventsPage() {
               <Link to="/notifications" className="text-sm text-gray-600 hover:text-blue-600">Notifications</Link>
               <Link to="/groups" className="text-sm text-gray-600 hover:text-blue-600">Groups</Link>
               <span className="text-sm font-semibold text-blue-600">Events</span>
+              <Link to="/templates" className="text-sm text-gray-600 hover:text-blue-600">Templates</Link>
+              <Link to="/settings" className="text-sm text-gray-600 hover:text-blue-600">Settings</Link>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">{user?.username}</span>

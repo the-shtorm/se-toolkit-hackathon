@@ -150,3 +150,82 @@ export interface EventListResponse {
   page: number;
   page_size: number;
 }
+
+// Templates
+export interface TemplateCreate {
+  name: string;
+  title_template: string;
+  message_template: string;
+  priority?: string;
+  category?: string;
+  is_public?: boolean;
+}
+
+export interface TemplateUpdate {
+  name?: string;
+  title_template?: string;
+  message_template?: string;
+  priority?: string;
+  category?: string;
+  is_public?: boolean;
+}
+
+export interface TemplateResponse {
+  id: string;
+  name: string;
+  title_template: string;
+  message_template: string;
+  priority: string;
+  category: string | null;
+  created_by: string;
+  is_public: boolean;
+  created_at: string | null;
+}
+
+export interface TemplateListResponse {
+  items: TemplateResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+// User Preferences
+export interface PreferencesCreate {
+  web_enabled?: boolean;
+  email_enabled?: boolean;
+  sms_enabled?: boolean;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  max_daily_notifications?: number;
+  timezone?: string;
+  digest_enabled?: boolean;
+  digest_frequency?: string | null;
+}
+
+export interface PreferencesUpdate {
+  web_enabled?: boolean;
+  email_enabled?: boolean;
+  sms_enabled?: boolean;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  max_daily_notifications?: number;
+  timezone?: string;
+  digest_enabled?: boolean;
+  digest_frequency?: string | null;
+}
+
+export interface PreferencesResponse {
+  id: string;
+  user_id: string;
+  web_enabled: boolean;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  max_daily_notifications: number;
+  timezone: string;
+  digest_enabled: boolean;
+  digest_frequency: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}

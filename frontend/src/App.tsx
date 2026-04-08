@@ -5,6 +5,8 @@ import Register from './pages/Register';
 import Notifications from './pages/Notifications';
 import Groups from './pages/Groups';
 import Events from './pages/Events';
+import Templates from './pages/Templates';
+import Settings from './pages/Settings';
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -63,6 +65,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Events />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/templates"
+          element={
+            <ProtectedRoute>
+              <Templates />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />
