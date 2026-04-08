@@ -45,6 +45,7 @@ class EventResponse(BaseModel):
     is_recurring: bool = False
     recurrence_rule: Optional[str] = None
     notification_id: Optional[UUID] = None
+    celery_task_id: Optional[str] = None
     created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)

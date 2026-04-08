@@ -25,6 +25,7 @@ class Event(Base):
     is_recurring = Column(Boolean, default=False)
     recurrence_rule = Column(String(255), nullable=True)
     notification_id = Column(PG_UUID(as_uuid=True), ForeignKey("notifications.id", ondelete="SET NULL"), nullable=True)
+    celery_task_id = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self) -> str:

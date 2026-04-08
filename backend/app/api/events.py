@@ -83,12 +83,15 @@ async def create_event(
         await db.commit()
         await db.refresh(event)
 
-        # Schedule Celery task
+        # Schedule Celery task and store task ID
         delay_seconds = (event.scheduled_at - datetime.now(timezone.utc)).total_seconds()
-        send_scheduled_notification.apply_async(
+        result = send_scheduled_notification.apply_async(
             args=[str(notification.id)],
             countdown=max(int(delay_seconds), 0),
         )
+        event.celery_task_id = result.id
+        await db.commit()
+        await db.refresh(event)
 
     return EventResponse.model_validate(event)
 
@@ -155,11 +158,32 @@ async def update_event(
     if not event or event.created_by != current_user.id:
         raise HTTPException(status_code=404, detail="Event not found")
 
+    # If updating scheduled_at and there's an existing Celery task, revoke it
+    if event.celery_task_id and event_data.scheduled_at is not None:
+        from celery.result import AsyncResult
+        task = AsyncResult(event.celery_task_id)
+        if task.status in ['PENDING', 'WAITING']:
+            task.revoke(terminate=True)
+            event.celery_task_id = None
+
     for field, value in event_data.model_dump(exclude_unset=True).items():
         setattr(event, field, value)
 
     await db.commit()
     await db.refresh(event)
+
+    # If the event has a notification and scheduled_at was updated, reschedule
+    if (event.notification_id and event.scheduled_at and 
+        event.scheduled_at > datetime.now(timezone.utc) and not event.celery_task_id):
+        delay_seconds = (event.scheduled_at - datetime.now(timezone.utc)).total_seconds()
+        result = send_scheduled_notification.apply_async(
+            args=[str(event.notification_id)],
+            countdown=max(int(delay_seconds), 0),
+        )
+        event.celery_task_id = result.id
+        await db.commit()
+        await db.refresh(event)
+
     return EventResponse.model_validate(event)
 
 
@@ -177,6 +201,13 @@ async def delete_event(
     event = await db.get(Event, UUID(event_id))
     if not event or event.created_by != current_user.id:
         raise HTTPException(status_code=404, detail="Event not found")
+
+    # Revoke Celery task if it exists
+    if event.celery_task_id:
+        from celery.result import AsyncResult
+        task = AsyncResult(event.celery_task_id)
+        if task.status in ['PENDING', 'WAITING']:
+            task.revoke(terminate=True)
 
     await db.delete(event)
     await db.commit()
