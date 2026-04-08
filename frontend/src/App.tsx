@@ -7,6 +7,7 @@ import Groups from './pages/Groups';
 import Events from './pages/Events';
 import Templates from './pages/Templates';
 import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -81,6 +82,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
             </ProtectedRoute>
           }
         />

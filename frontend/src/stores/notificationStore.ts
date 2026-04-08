@@ -13,7 +13,7 @@ interface NotificationState {
 
   // Actions
   fetchNotifications: (page?: number) => Promise<void>;
-  fetchStats: () => Promise<void>;
+  fetchStats: (returnData?: boolean) => Promise<any | void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   addNotification: (notification: Notification) => void;
@@ -52,10 +52,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }
   },
 
-  fetchStats: async () => {
+  fetchStats: async (returnData = false) => {
     try {
       const stats = await api.getStats();
       set({ unreadCount: stats.unread_count });
+      if (returnData) return stats;
     } catch {
       // Ignore
     }

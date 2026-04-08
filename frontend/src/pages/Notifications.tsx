@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNotificationStore } from '../stores/notificationStore';
-import type { Notification } from '../types';
+import * as snoozesApi from '../api/snoozes';
+import type { Notification, SnoozeOption } from '../types';
 
 const priorityColors: Record<string, string> = {
   low: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -38,6 +39,8 @@ export default function Dashboard() {
   } = useNotificationStore();
 
   const [toast, setToast] = useState<Notification | null>(null);
+  const [snoozeMenu, setSnoozeMenu] = useState<{ notifId: string; x: number; y: number } | null>(null);
+  const [snoozeOptions, setSnoozeOptions] = useState<SnoozeOption[]>([]);
 
   // Handle new notification from WebSocket
   const handleNewNotification = useCallback(
@@ -59,6 +62,59 @@ export default function Dashboard() {
     onNotification: handleNewNotification,
     enabled: true,
   });
+
+  // Load snooze options
+  useEffect(() => {
+    snoozesApi.getSnoozeOptions().then((res) => setSnoozeOptions(res.options)).catch(() => {});
+  }, []);
+
+  // Handle quick snooze
+  const handleQuickSnooze = async (notifId: string, duration: string) => {
+    try {
+      await snoozesApi.quickSnooze(notifId, duration);
+      // Optimistically hide notification from list
+      const opt = snoozeOptions.find((o) => o.value === duration);
+      setToast({
+        id: notifId,
+        title: '⏰ Snoozed',
+        message: `Notification snoozed until ${opt?.label || duration}`,
+        priority: 'low',
+        status: 'read',
+        created_by: '',
+        group_id: null,
+        group_name: null,
+        created_at: new Date().toISOString(),
+        sent_at: null,
+        read_at: null,
+      } as Notification);
+      setTimeout(() => setToast(null), 3000);
+    } catch {
+      setToast({
+        id: notifId,
+        title: '⚠️ Snooze Failed',
+        message: 'Could not snooze notification',
+        priority: 'high',
+        status: 'sent',
+        created_by: '',
+        group_id: null,
+        group_name: null,
+        created_at: new Date().toISOString(),
+        sent_at: null,
+        read_at: null,
+      } as Notification);
+      setTimeout(() => setToast(null), 3000);
+    }
+    setSnoozeMenu(null);
+  };
+
+  // Close snooze menu on click outside
+  useEffect(() => {
+    const closeMenu = () => setSnoozeMenu(null);
+    if (snoozeMenu) {
+      document.addEventListener('click', closeMenu);
+      return () => document.removeEventListener('click', closeMenu);
+    }
+  }, [snoozeMenu]);
 
   // Initial load
   useEffect(() => {
@@ -119,6 +175,9 @@ export default function Dashboard() {
               <span className="text-sm font-semibold text-blue-600">Notifications</span>
               <Link to="/groups" className="text-sm text-gray-600 hover:text-blue-600">Groups</Link>
               <Link to="/events" className="text-sm text-gray-600 hover:text-blue-600">Events</Link>
+              <Link to="/templates" className="text-sm text-gray-600 hover:text-blue-600">Templates</Link>
+              <Link to="/analytics" className="text-sm text-gray-600 hover:text-blue-600">Analytics</Link>
+              <Link to="/settings" className="text-sm text-gray-600 hover:text-blue-600">Settings</Link>
             </div>
             <div className="flex items-center space-x-4">
               {wsStatusIndicator()}
@@ -244,6 +303,16 @@ export default function Dashboard() {
                     >
                       {notif.priority}
                     </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSnoozeMenu({ notifId: notif.id, x: e.clientX, y: e.clientY });
+                      }}
+                      className="ml-2 text-gray-400 hover:text-yellow-600 text-lg"
+                      title="Snooze"
+                    >
+                      ⏰
+                    </button>
                   </div>
                 </li>
               ))}
@@ -276,6 +345,28 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+
+      {/* Snooze Menu Popup */}
+      {snoozeMenu && (
+        <div
+          className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-3"
+          style={{ top: snoozeMenu.y + 10, left: Math.min(snoozeMenu.x, window.innerWidth - 220) }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="text-sm font-semibold text-gray-800 mb-2">Snooze for...</p>
+          <div className="grid grid-cols-2 gap-2">
+            {snoozeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => handleQuickSnooze(snoozeMenu.notifId, opt.value)}
+                className="px-3 py-2 text-sm bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded border border-gray-200 transition-colors"
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -82,12 +82,76 @@ async def get_stats(
     current_user: CurrentUser,
     db: CurrentDB,
 ):
-    """Get unread notification count for current user."""
+    """Get notification statistics for dashboard analytics."""
+    from sqlalchemy import select, func, extract
+    from datetime import datetime, timedelta, timezone
+
+    # Unread count
     unread_count = await notification_service.get_unread_count(
         db=db,
         user_id=current_user.id,
     )
-    return {"unread_count": unread_count}
+
+    # Total notifications
+    total_result = await db.execute(
+        select(func.count(Notification.id)).where(Notification.id.in_(
+            select(NotificationRecipient.notification_id).where(
+                NotificationRecipient.user_id == current_user.id
+            )
+        ))
+    )
+    total = total_result.scalar() or 0
+
+    # Read rate
+    read_result = await db.execute(
+        select(func.count(Notification.id)).where(Notification.id.in_(
+            select(NotificationRecipient.notification_id).where(
+                NotificationRecipient.user_id == current_user.id,
+                NotificationRecipient.delivery_status == "read",
+            )
+        ))
+    )
+    read_count = read_result.scalar() or 0
+    read_rate = round((read_count / total * 100), 1) if total > 0 else 0
+
+    # By priority
+    priority_result = await db.execute(
+        select(Notification.priority, func.count(Notification.id))
+        .where(Notification.id.in_(
+            select(NotificationRecipient.notification_id).where(
+                NotificationRecipient.user_id == current_user.id
+            )
+        ))
+        .group_by(Notification.priority)
+    )
+    by_priority = {row[0]: row[1] for row in priority_result.all()}
+
+    # Last 7 days activity
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    daily_result = await db.execute(
+        select(
+            func.date(Notification.created_at).label('date'),
+            func.count(Notification.id).label('count')
+        )
+        .where(Notification.id.in_(
+            select(NotificationRecipient.notification_id).where(
+                NotificationRecipient.user_id == current_user.id
+            )
+        ))
+        .where(Notification.created_at >= seven_days_ago)
+        .group_by(func.date(Notification.created_at))
+        .order_by(func.date(Notification.created_at))
+    )
+    daily = {str(row[0]): row[1] for row in daily_result.all()}
+
+    return {
+        "unread_count": unread_count,
+        "total": total,
+        "read_count": read_count,
+        "read_rate": read_rate,
+        "by_priority": by_priority,
+        "daily_last_7_days": daily,
+    }
 
 
 @router.put(

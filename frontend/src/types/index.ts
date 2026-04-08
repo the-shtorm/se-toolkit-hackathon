@@ -229,3 +229,26 @@ export interface PreferencesResponse {
   created_at: string | null;
   updated_at: string | null;
 }
+
+// Snoozes
+export interface SnoozeCreate {
+  notification_id: string;
+  snoozed_until: string;
+}
+
+export interface SnoozeResponse {
+  id: string;
+  notification_id: string;
+  user_id: string;
+  snoozed_until: string;
+  created_at: string;
+}
+
+export interface SnoozeOption {
+  label: string;
+  value: string;
+}
+
+export interface SnoozeOptions {
+  options: SnoozeOption[];
+}

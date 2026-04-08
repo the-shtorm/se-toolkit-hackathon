@@ -29,6 +29,7 @@ from app.models import group  # noqa: F401
 from app.models import event  # noqa: F401
 from app.models import template  # noqa: F401
 from app.models import preference  # noqa: F401
+from app.models import snooze  # noqa: F401
 
 target_metadata = Base.metadata
 
