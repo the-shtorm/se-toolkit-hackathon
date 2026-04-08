@@ -1,41 +1,55 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from './stores/authStore';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Notifications from './pages/Notifications';
 
-function App() {
-  const [message, setMessage] = useState<string>('Loading...')
-
-  useState(() => {
-    fetch('/api/v1/health')
-      .then((res) => res.json())
-      .then((data) => {
-        setMessage(`Backend Status: ${data.status}`)
-      })
-      .catch(() => {
-        setMessage('Backend not connected')
-      })
-  })
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Smart Notification Manager
-        </h1>
-        <p className="text-gray-600 mb-2">Version 1.0.0</p>
-        <div
-          className={`p-4 rounded ${
-            message.includes('healthy')
-              ? 'bg-green-100 text-green-700'
-              : 'bg-yellow-100 text-yellow-700'
-          }`}
-        >
-          {message}
-        </div>
-        <p className="text-sm text-gray-500 mt-4">
-          Real-time notification dashboard - Coming Soon
-        </p>
-      </div>
-    </div>
-  )
+function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
 }
 
-export default App
+function PublicOnlyRoute({ children }: { children: JSX.Element }) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  if (isAuthenticated) {
+    return <Navigate to="/notifications" replace />;
+  }
+  return children;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicOnlyRoute>
+              <Register />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/notifications" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
