@@ -83,15 +83,22 @@ async def create_event(
         await db.commit()
         await db.refresh(event)
 
-        # Schedule Celery task and store task ID
-        delay_seconds = (event.scheduled_at - datetime.now(timezone.utc)).total_seconds()
-        result = send_scheduled_notification.apply_async(
-            args=[str(notification.id)],
-            countdown=max(int(delay_seconds), 0),
-        )
-        event.celery_task_id = result.id
-        await db.commit()
-        await db.refresh(event)
+        # Schedule Celery task and store task ID (best-effort)
+        try:
+            delay_seconds = (event.scheduled_at - datetime.now(timezone.utc)).total_seconds()
+            result = send_scheduled_notification.apply_async(
+                args=[str(notification.id)],
+                countdown=max(int(delay_seconds), 0),
+            )
+            event.celery_task_id = result.id
+            await db.commit()
+            await db.refresh(event)
+        except Exception as celery_err:
+            # Log but don't fail the request — event is still saved
+            import logging
+            logging.getLogger(__name__).warning(
+                f"Failed to schedule Celery task for event {event.id}: {celery_err}"
+            )
 
     return EventResponse.model_validate(event)
 
