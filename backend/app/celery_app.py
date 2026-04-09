@@ -4,7 +4,6 @@ from celery import Celery
 
 # Get Redis URL from env or default
 redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
-database_url = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@db:5432/notifications")
 
 celery_app = Celery(
     "notification_tasks",
@@ -28,55 +27,89 @@ celery_app.conf.update(
 def send_scheduled_notification(self, notification_id: str) -> dict:
     """
     Send a scheduled notification.
-    This task is called by Celery Beat at the scheduled time.
+    This task is called by Celery at the scheduled time.
     It marks the notification as 'sent' and broadcasts via WebSocket.
+    
+    Uses synchronous psycopg2 queries (not asyncpg) because Celery workers
+    are synchronous and don't play well with asyncio.run().
     """
-    import asyncio
     import uuid
+    import json
     from datetime import datetime, timezone
-    from sqlalchemy import select
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from app.database import async_session_factory
-    from app.models.notification import Notification, NotificationRecipient, NotificationStatusEnum, DeliveryStatusEnum
-    from app.core.websocket import manager
-
-    async def _send():
-        async with async_session_factory() as db:
-            notif_result = await db.execute(
-                select(Notification).where(Notification.id == uuid.UUID(notification_id))
-            )
-            notification = notif_result.scalar_one_or_none()
-            if not notification:
-                return {"status": "error", "message": "Notification not found"}
-
-            notification.status = NotificationStatusEnum.sent
-            notification.sent_at = datetime.now(timezone.utc)
-            await db.commit()
-
-            # Broadcast via WebSocket
-            recipient_ids_result = await db.execute(
-                select(NotificationRecipient.user_id).where(
-                    NotificationRecipient.notification_id == notification.id
-                )
-            )
-            recipient_ids = [row[0] for row in recipient_ids_result.all()]
-
-            from app.schemas.notification import NotificationResponse
-            payload = {
-                "type": "notification:new",
-                "data": {
-                    **NotificationResponse.model_validate(notification).model_dump(mode="json"),
-                    "scheduled": True,
-                },
-            }
-            for user_id in recipient_ids:
-                if manager.get_active_connections(user_id) > 0:
-                    await manager.send_personal(payload, user_id)
-
-            return {"status": "sent", "notification_id": notification_id}
-
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    
+    # Build synchronous database URL
+    db_url = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@db:5432/notifications")
+    # Convert asyncpg URL to psycopg2 format
+    db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
+    
     try:
-        return asyncio.run(_send())
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get notification
+        cur.execute(
+            "SELECT id, title, message, priority, status, created_by, group_id, created_at, sent_at, read_at "
+            "FROM notifications WHERE id = %s",
+            (str(uuid.UUID(notification_id)),)
+        )
+        notification = cur.fetchone()
+        
+        if not notification:
+            conn.close()
+            return {"status": "error", "message": "Notification not found"}
+        
+        # Update status to sent
+        now = datetime.now(timezone.utc)
+        cur.execute(
+            "UPDATE notifications SET status = 'sent', sent_at = %s WHERE id = %s",
+            (now, str(uuid.UUID(notification_id)))
+        )
+        conn.commit()
+        
+        # Get recipients
+        cur.execute(
+            "SELECT user_id FROM notification_recipients WHERE notification_id = %s",
+            (str(uuid.UUID(notification_id)),)
+        )
+        recipients = cur.fetchall()
+        conn.close()
+        
+        # Broadcast via HTTP endpoint (synchronous)
+        import requests
+        notif_data = {
+            "id": str(notification["id"]),
+            "title": notification["title"],
+            "message": notification["message"],
+            "priority": notification["priority"],
+            "status": "sent",
+            "created_by": str(notification["created_by"]),
+            "group_id": str(notification["group_id"]) if notification["group_id"] else None,
+            "created_at": notification["created_at"].isoformat() if notification["created_at"] else None,
+            "sent_at": now.isoformat(),
+            "read_at": None,
+            "group_name": None,
+        }
+        
+        payload = {
+            "type": "notification:new",
+            "data": {**notif_data, "scheduled": True},
+        }
+        
+        # Send to each recipient via backend's broadcast endpoint
+        for recipient in recipients:
+            user_id = str(recipient["user_id"])
+            try:
+                requests.post(
+                    "http://backend:8000/api/v1/notifications/broadcast",
+                    json={"user_id": user_id, "payload": payload},
+                    timeout=5
+                )
+            except Exception as e:
+                print(f"Failed to broadcast to user {user_id}: {e}")
+        
+        return {"status": "sent", "notification_id": notification_id}
+        
     except Exception as exc:
         raise self.retry(exc=exc)

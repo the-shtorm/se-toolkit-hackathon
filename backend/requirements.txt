@@ -31,3 +31,6 @@ websockets==14.1
 # Redis & Background Tasks
 redis[hiredis]==5.2.1
 celery==5.4.0
+
+# Synchronous PostgreSQL driver (for Celery workers)
+psycopg2-binary==2.9.10

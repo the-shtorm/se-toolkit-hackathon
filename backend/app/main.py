@@ -18,6 +18,7 @@ from app.api.events import router as events_router
 from app.api.templates import router as templates_router
 from app.api.preferences import router as preferences_router
 from app.api.snoozes import router as snoozes_router
+from app.api.broadcast import router as broadcast_router
 
 
 # Initialize rate limiter
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(templates_router, prefix="/api/v1")
     app.include_router(preferences_router, prefix="/api/v1")
     app.include_router(snoozes_router, prefix="/api/v1")
+    app.include_router(broadcast_router, prefix="/api/v1")  # Internal broadcast
     app.include_router(websocket_router)  # WebSocket has its own path prefix
 
     return app
