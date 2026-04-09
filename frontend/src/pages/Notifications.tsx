@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNotificationStore } from '../stores/notificationStore';
 import * as snoozesApi from '../api/snoozes';
 import type { Notification, SnoozeOption } from '../types';
+import NavBar from '../components/NavBar';
 
 const priorityColors: Record<string, string> = {
   low: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -167,49 +167,12 @@ export default function Dashboard() {
       )}
 
       {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-gray-800">Smart Notification Manager</h1>
-              <span className="text-sm font-semibold text-blue-600">Notifications</span>
-              <Link to="/groups" className="text-sm text-gray-600 hover:text-blue-600">Groups</Link>
-              <Link to="/events" className="text-sm text-gray-600 hover:text-blue-600">Events</Link>
-              <Link to="/templates" className="text-sm text-gray-600 hover:text-blue-600">Templates</Link>
-              <Link to="/analytics" className="text-sm text-gray-600 hover:text-blue-600">Analytics</Link>
-              <Link to="/settings" className="text-sm text-gray-600 hover:text-blue-600">Settings</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              {wsStatusIndicator()}
-              <span className="text-sm text-gray-600" title="Your User ID">
-                {user?.username}
-              </span>
-              <span
-                className="text-xs text-gray-400 font-mono cursor-pointer hover:text-gray-600"
-                title="Click to copy your User ID"
-                onClick={() => {
-                  if (user?.id) {
-                    navigator.clipboard.writeText(user.id);
-                  }
-                }}
-              >
-                {user?.id?.slice(0, 8)}...
-              </span>
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                  {unreadCount} unread
-                </span>
-              )}
-              <button
-                onClick={logout}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <NavBar extra={
+        <span className="flex items-center gap-1 text-xs text-gray-500" title={`WebSocket: ${wsStatus}`}>
+          <span className={`w-2 h-2 rounded-full ${wsStatus === 'open' ? 'bg-green-400' : wsStatus === 'connecting' ? 'bg-yellow-400' : 'bg-gray-400'}`}></span>
+          {wsStatus === 'open' ? 'Live' : wsStatus}
+        </span>
+      } />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

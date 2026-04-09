@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import * as groupsApi from '../api/groups';
 import { listUsers } from '../api/auth';
 import type { GroupResponse, GroupDetailResponse, GroupMember, UserResponse } from '../types';
+import NavBar from '../components/NavBar';
 
 export default function GroupsPage() {
   const { user, logout } = useAuth();
@@ -82,41 +83,7 @@ export default function GroupsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-gray-800">Smart Notification Manager</h1>
-              <Link to="/notifications" className="text-sm text-gray-600 hover:text-blue-600">
-                Notifications
-              </Link>
-              <span className="text-sm font-semibold text-blue-600">Groups</span>
-              <Link to="/events" className="text-sm text-gray-600 hover:text-blue-600">Events</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome, {user?.username}</span>
-              <span
-                className="text-xs text-gray-400 font-mono cursor-pointer hover:text-gray-600"
-                title="Your User ID (click to copy)"
-                onClick={() => {
-                  if (user?.id) {
-                    navigator.clipboard.writeText(user.id);
-                  }
-                }}
-              >
-                {user?.id?.slice(0, 8)}...
-              </span>
-              <button
-                onClick={logout}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <NavBar />
 
       {/* Main */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

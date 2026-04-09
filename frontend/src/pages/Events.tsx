@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import * as eventsApi from '../api/events';
 import * as groupsApi from '../api/groups';
 import type { EventResponse, EventUpdate, GroupResponse } from '../types';
+import NavBar from '../components/NavBar';
 
 const priorities = ['low', 'medium', 'high', 'critical'] as const;
 const priorityColors: Record<string, string> = {
@@ -161,25 +162,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Nav */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-gray-800">Smart Notification Manager</h1>
-              <Link to="/notifications" className="text-sm text-gray-600 hover:text-blue-600">Notifications</Link>
-              <Link to="/groups" className="text-sm text-gray-600 hover:text-blue-600">Groups</Link>
-              <span className="text-sm font-semibold text-blue-600">Events</span>
-              <Link to="/templates" className="text-sm text-gray-600 hover:text-blue-600">Templates</Link>
-              <Link to="/settings" className="text-sm text-gray-600 hover:text-blue-600">Settings</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">{user?.username}</span>
-              <button onClick={logout} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <NavBar />
 
       {/* Main */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
