@@ -122,6 +122,15 @@ export default function Dashboard() {
     fetchStats();
   }, []);
 
+  // Periodic refresh as WebSocket fallback (every 10 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchNotifications(page);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [page, fetchNotifications, fetchStats]);
+
   const wsStatusIndicator = () => {
     const colors = {
       connecting: 'bg-yellow-400',
