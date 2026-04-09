@@ -64,10 +64,10 @@ async def snooze_notification(
     summary="Quick snooze with preset durations",
 )
 async def quick_snooze(
-    notification_id: str,
-    duration: str = Query(..., pattern="^(15m|1h|4h|1d|1w)$"),
-    current_user: CurrentUser = None,
+    current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
+    notification_id: str = Query(...),
+    duration: str = Query(..., pattern="^(15m|1h|4h|1d|1w)$"),
 ):
     """Snooze notification with a preset duration."""
     # Verify notification exists
@@ -110,9 +110,10 @@ async def unsnooze_notification(
             NotificationSnooze.user_id == current_user.id,
         )
     )
-    snooze = result.scalar_one_or_none()
-    if snooze:
+    snoozes = result.scalars().all()
+    for snooze in snoozes:
         await db.delete(snooze)
+    if snoozes:
         await db.commit()
 
 

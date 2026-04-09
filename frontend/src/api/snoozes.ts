@@ -11,7 +11,9 @@ export async function snoozeNotification(payload: SnoozeCreate): Promise<SnoozeR
 }
 
 export async function quickSnooze(notificationId: string, duration: string): Promise<SnoozeResponse> {
-  const { data } = await apiClient.post<SnoozeResponse>(`/snoozes/quick?notification_id=${notificationId}&duration=${duration}`);
+  const { data } = await apiClient.post<SnoozeResponse>('/snoozes/quick', null, {
+    params: { notification_id: notificationId, duration },
+  });
   return data;
 }
 

@@ -2,12 +2,13 @@
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.api.deps import CurrentUser, CurrentDB
 from app.models.user import User
-from app.models.notification import NotificationStatusEnum
+from app.models.notification import Notification, NotificationRecipient, NotificationStatusEnum
 from app.schemas.notification import (
     NotificationCreate,
     NotificationResponse,
@@ -83,7 +84,6 @@ async def get_stats(
     db: CurrentDB,
 ):
     """Get notification statistics for dashboard analytics."""
-    from sqlalchemy import select, func, extract
     from datetime import datetime, timedelta, timezone
 
     # Unread count
