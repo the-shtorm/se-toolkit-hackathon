@@ -55,7 +55,7 @@ services:
 
   # Celery Worker (V2)
   celery-worker:
-    image: hackaton-backend
+    build: ./backend
     environment:
       - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/notifications
       - REDIS_URL=redis://redis:6379/0
