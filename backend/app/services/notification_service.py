@@ -12,6 +12,7 @@ from app.models.notification import (
     NotificationStatusEnum,
     DeliveryStatusEnum,
 )
+from app.models.group import GroupMember
 from app.schemas.notification import NotificationCreate, NotificationResponse
 from app.core.websocket import manager
 
@@ -25,9 +26,23 @@ async def _broadcast_notification(db: AsyncSession, notification: Notification, 
     )
     recipient_ids = [row[0] for row in result.all()]
 
+    # Fetch group name if applicable
+    group_name = None
+    if notification.group_id:
+        from app.models.group import NotificationGroup
+        grp_result = await db.execute(
+            select(NotificationGroup.name).where(NotificationGroup.id == notification.group_id)
+        )
+        grp = grp_result.scalar_one_or_none()
+        if grp:
+            group_name = grp
+
     payload = {
         "type": f"notification:{event}",
-        "data": NotificationResponse.model_validate(notification).model_dump(mode="json"),
+        "data": {
+            **NotificationResponse.model_validate(notification).model_dump(mode="json"),
+            "group_name": group_name,
+        },
     }
 
     for user_id in recipient_ids:
@@ -40,26 +55,43 @@ async def create_notification(
     notification_data: NotificationCreate,
     created_by: UUID,
 ) -> Notification:
-    """Create a notification and add the creator as recipient."""
+    """Create a notification. If group_id is set, adds all group members as recipients."""
     notification = Notification(
         title=notification_data.title,
         message=notification_data.message,
         priority=notification_data.priority,
         status=NotificationStatusEnum.sent,
         created_by=created_by,
+        group_id=notification_data.group_id,
     )
 
     db.add(notification)
     await db.flush()
 
-    # Add creator as recipient
-    recipient = NotificationRecipient(
-        notification_id=notification.id,
-        user_id=created_by,
-        delivery_status=DeliveryStatusEnum.delivered,
-        delivered_at=datetime.now(timezone.utc),
-    )
-    db.add(recipient)
+    if notification_data.group_id:
+        # Add all group members as recipients
+        members_result = await db.execute(
+            select(GroupMember.user_id).where(GroupMember.group_id == notification_data.group_id)
+        )
+        member_ids = [row[0] for row in members_result.all()]
+
+        for member_id in member_ids:
+            recipient = NotificationRecipient(
+                notification_id=notification.id,
+                user_id=member_id,
+                delivery_status=DeliveryStatusEnum.delivered,
+                delivered_at=datetime.now(timezone.utc),
+            )
+            db.add(recipient)
+    else:
+        # Add creator as recipient
+        recipient = NotificationRecipient(
+            notification_id=notification.id,
+            user_id=created_by,
+            delivery_status=DeliveryStatusEnum.delivered,
+            delivered_at=datetime.now(timezone.utc),
+        )
+        db.add(recipient)
 
     await db.commit()
     await db.refresh(notification)
@@ -92,18 +124,26 @@ async def get_user_notifications(
     db: AsyncSession,
     user_id: UUID,
     status_filter: NotificationStatusEnum | None = None,
+    group_id: str | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Notification], int]:
-    """Get paginated list of notifications for a user."""
+    """Get paginated list of notifications for a user. Excludes 'pending' by default."""
+    import uuid
     base_query = (
         select(Notification)
         .join(NotificationRecipient)
         .where(NotificationRecipient.user_id == user_id)
     )
 
+    # Exclude pending notifications unless explicitly requested
     if status_filter:
         base_query = base_query.where(Notification.status == status_filter)
+    else:
+        base_query = base_query.where(Notification.status != NotificationStatusEnum.pending)
+
+    if group_id:
+        base_query = base_query.where(Notification.group_id == uuid.UUID(group_id))
 
     # Get total count
     count_query = select(func.count()).select_from(base_query.subquery())
@@ -116,7 +156,21 @@ async def get_user_notifications(
     result = await db.execute(query)
     notifications = result.scalars().all()
 
-    return list(notifications), total
+    # Enrich with group names
+    enriched = []
+    for n in notifications:
+        gname = None
+        if n.group_id:
+            from app.models.group import NotificationGroup
+            grp = await db.execute(
+                select(NotificationGroup.name).where(NotificationGroup.id == n.group_id)
+            )
+            g = grp.scalar_one_or_none()
+            if g:
+                gname = g
+        enriched.append((n, gname))
+
+    return enriched, total
 
 
 async def mark_notification_as_read(

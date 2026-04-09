@@ -1,0 +1,500 @@
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 301, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+backend-1  |     return await dependant.call(**values)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/events.py", line 88, in create_event
+backend-1  |     result = send_scheduled_notification.apply_async(
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/celery/app/task.py", line 594, in apply_async
+backend-1  |     return app.send_task(
+backend-1  |            ^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/celery/app/base.py", line 798, in send_task
+backend-1  |     with P.connection._reraise_as_library_errors():
+backend-1  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 158, in __exit__
+backend-1  |     self.gen.throw(value)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/kombu/connection.py", line 478, in _reraise_as_library_errors
+backend-1  |     raise ConnectionError(str(exc)) from exc
+backend-1  | kombu.exceptions.OperationalError: Error -5 connecting to redis:6379. No address associated with hostname.
+backend-1  | 2026-04-09 08:29:50,410 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,410 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,410 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,412 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+backend-1  | FROM (SELECT events.id AS id, events.name AS name, events.description AS description, events.title AS title, events.message AS message, events.priority AS priority, events.created_by AS created_by, events.group_id AS group_id, events.scheduled_at AS scheduled_at, events.is_recurring AS is_recurring, events.recurrence_rule AS recurrence_rule, events.notification_id AS notification_id, events.celery_task_id AS celery_task_id, events.created_at AS created_at 
+backend-1  | FROM events 
+backend-1  | WHERE events.created_by = $1::UUID) AS anon_1
+backend-1  | 2026-04-09 08:29:50,412 INFO sqlalchemy.engine.Engine [generated in 0.00011s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,414 INFO sqlalchemy.engine.Engine SELECT events.id, events.name, events.description, events.title, events.message, events.priority, events.created_by, events.group_id, events.scheduled_at, events.is_recurring, events.recurrence_rule, events.notification_id, events.celery_task_id, events.created_at 
+backend-1  | FROM events 
+backend-1  | WHERE events.created_by = $1::UUID ORDER BY events.scheduled_at DESC NULLS LAST 
+backend-1  |  LIMIT $2::INTEGER OFFSET $3::INTEGER
+backend-1  | 2026-04-09 08:29:50,414 INFO sqlalchemy.engine.Engine [generated in 0.00010s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), 20, 0)
+backend-1  | 2026-04-09 08:29:50,415 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49010 - "GET /api/v1/events HTTP/1.1" 200 OK
+backend-1  | 2026-04-09 08:29:50,420 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,420 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,420 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,421 INFO sqlalchemy.engine.Engine ROLLBACK
+backend-1  | INFO:     172.18.0.1:49020 - "GET /api/v1/events/None HTTP/1.1" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 715, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 735, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 301, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+backend-1  |     return await dependant.call(**values)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/events.py", line 139, in get_event
+backend-1  |     event = await db.get(Event, UUID(event_id))
+backend-1  |                                 ^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/uuid.py", line 178, in __init__
+backend-1  |     raise ValueError('badly formed hexadecimal UUID string')
+backend-1  | ValueError: badly formed hexadecimal UUID string
+backend-1  | 2026-04-09 08:29:50,428 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,429 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,429 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,432 INFO sqlalchemy.engine.Engine ROLLBACK
+backend-1  | INFO:     172.18.0.1:49024 - "PUT /api/v1/events/None HTTP/1.1" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 715, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 735, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 301, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+backend-1  |     return await dependant.call(**values)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/events.py", line 157, in update_event
+backend-1  |     event = await db.get(Event, UUID(event_id))
+backend-1  |                                 ^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/uuid.py", line 178, in __init__
+backend-1  |     raise ValueError('badly formed hexadecimal UUID string')
+backend-1  | ValueError: badly formed hexadecimal UUID string
+backend-1  | 2026-04-09 08:29:50,439 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,439 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,439 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,440 INFO sqlalchemy.engine.Engine ROLLBACK
+backend-1  | INFO:     172.18.0.1:49030 - "DELETE /api/v1/events/None HTTP/1.1" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 715, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 735, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 301, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+backend-1  |     return await dependant.call(**values)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/events.py", line 201, in delete_event
+backend-1  |     event = await db.get(Event, UUID(event_id))
+backend-1  |                                 ^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/uuid.py", line 178, in __init__
+backend-1  |     raise ValueError('badly formed hexadecimal UUID string')
+backend-1  | ValueError: badly formed hexadecimal UUID string
+backend-1  | 2026-04-09 08:29:50,447 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,447 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,447 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,451 INFO sqlalchemy.engine.Engine INSERT INTO notification_templates (id, name, title_template, message_template, priority, category, created_by, is_public) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::UUID, $8::BOOLEAN) RETURNING notification_templates.created_at
+backend-1  | 2026-04-09 08:29:50,451 INFO sqlalchemy.engine.Engine [generated in 0.00020s] (UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'), 'Meeting Reminder', 'Reminder: {meeting_name}', "Don't forget about {meeting_name} at {time}", 'medium', 'meeting', UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), True)
+backend-1  | 2026-04-09 08:29:50,453 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | 2026-04-09 08:29:50,455 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,456 INFO sqlalchemy.engine.Engine SELECT notification_templates.id, notification_templates.name, notification_templates.title_template, notification_templates.message_template, notification_templates.priority, notification_templates.category, notification_templates.created_by, notification_templates.is_public, notification_templates.created_at 
+backend-1  | FROM notification_templates 
+backend-1  | WHERE notification_templates.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,456 INFO sqlalchemy.engine.Engine [generated in 0.00011s] (UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'),)
+backend-1  | 2026-04-09 08:29:50,457 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49040 - "POST /api/v1/templates HTTP/1.1" 201 Created
+backend-1  | 2026-04-09 08:29:50,462 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,462 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,462 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,464 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+backend-1  | FROM (SELECT notification_templates.id AS id, notification_templates.name AS name, notification_templates.title_template AS title_template, notification_templates.message_template AS message_template, notification_templates.priority AS priority, notification_templates.category AS category, notification_templates.created_by AS created_by, notification_templates.is_public AS is_public, notification_templates.created_at AS created_at 
+backend-1  | FROM notification_templates 
+backend-1  | WHERE notification_templates.is_public = true OR notification_templates.created_by = $1::UUID) AS anon_1
+backend-1  | 2026-04-09 08:29:50,464 INFO sqlalchemy.engine.Engine [generated in 0.00010s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,465 INFO sqlalchemy.engine.Engine SELECT notification_templates.id, notification_templates.name, notification_templates.title_template, notification_templates.message_template, notification_templates.priority, notification_templates.category, notification_templates.created_by, notification_templates.is_public, notification_templates.created_at 
+backend-1  | FROM notification_templates 
+backend-1  | WHERE notification_templates.is_public = true OR notification_templates.created_by = $1::UUID ORDER BY notification_templates.created_at DESC 
+backend-1  |  LIMIT $2::INTEGER OFFSET $3::INTEGER
+backend-1  | 2026-04-09 08:29:50,465 INFO sqlalchemy.engine.Engine [generated in 0.00010s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), 20, 0)
+backend-1  | 2026-04-09 08:29:50,466 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49048 - "GET /api/v1/templates HTTP/1.1" 200 OK
+backend-1  | 2026-04-09 08:29:50,471 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,471 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,472 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,473 INFO sqlalchemy.engine.Engine SELECT notification_templates.id AS notification_templates_id, notification_templates.name AS notification_templates_name, notification_templates.title_template AS notification_templates_title_template, notification_templates.message_template AS notification_templates_message_template, notification_templates.priority AS notification_templates_priority, notification_templates.category AS notification_templates_category, notification_templates.created_by AS notification_templates_created_by, notification_templates.is_public AS notification_templates_is_public, notification_templates.created_at AS notification_templates_created_at 
+backend-1  | FROM notification_templates 
+backend-1  | WHERE notification_templates.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,473 INFO sqlalchemy.engine.Engine [generated in 0.00009s] (UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'),)
+backend-1  | 2026-04-09 08:29:50,474 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49050 - "GET /api/v1/templates/82dc99fb-48cf-4bbd-8d57-8d534c6da68d HTTP/1.1" 200 OK
+backend-1  | 2026-04-09 08:29:50,479 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,479 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,479 INFO sqlalchemy.engine.Engine [cached since 107.5s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,482 INFO sqlalchemy.engine.Engine SELECT notification_templates.id AS notification_templates_id, notification_templates.name AS notification_templates_name, notification_templates.title_template AS notification_templates_title_template, notification_templates.message_template AS notification_templates_message_template, notification_templates.priority AS notification_templates_priority, notification_templates.category AS notification_templates_category, notification_templates.created_by AS notification_templates_created_by, notification_templates.is_public AS notification_templates_is_public, notification_templates.created_at AS notification_templates_created_at 
+backend-1  | FROM notification_templates 
+backend-1  | WHERE notification_templates.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,482 INFO sqlalchemy.engine.Engine [cached since 0.008817s ago] (UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'),)
+backend-1  | 2026-04-09 08:29:50,483 INFO sqlalchemy.engine.Engine UPDATE notification_templates SET name=$1::VARCHAR, priority=$2::VARCHAR WHERE notification_templates.id = $3::UUID
+backend-1  | 2026-04-09 08:29:50,483 INFO sqlalchemy.engine.Engine [generated in 0.00011s] ('Updated Meeting Reminder', 'high', UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'))
+backend-1  | 2026-04-09 08:29:50,484 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | 2026-04-09 08:29:50,486 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,487 INFO sqlalchemy.engine.Engine SELECT notification_templates.id, notification_templates.name, notification_templates.title_template, notification_templates.message_template, notification_templates.priority, notification_templates.category, notification_templates.created_by, notification_templates.is_public, notification_templates.created_at 
+backend-1  | FROM notification_templates 
+backend-1  | WHERE notification_templates.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,487 INFO sqlalchemy.engine.Engine [cached since 0.031s ago] (UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'),)
+backend-1  | 2026-04-09 08:29:50,487 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49052 - "PUT /api/v1/templates/82dc99fb-48cf-4bbd-8d57-8d534c6da68d HTTP/1.1" 200 OK
+backend-1  | 2026-04-09 08:29:50,493 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,493 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,493 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,494 INFO sqlalchemy.engine.Engine SELECT notification_templates.id AS notification_templates_id, notification_templates.name AS notification_templates_name, notification_templates.title_template AS notification_templates_title_template, notification_templates.message_template AS notification_templates_message_template, notification_templates.priority AS notification_templates_priority, notification_templates.category AS notification_templates_category, notification_templates.created_by AS notification_templates_created_by, notification_templates.is_public AS notification_templates_is_public, notification_templates.created_at AS notification_templates_created_at 
+backend-1  | FROM notification_templates 
+backend-1  | WHERE notification_templates.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,494 INFO sqlalchemy.engine.Engine [cached since 0.02068s ago] (UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'),)
+backend-1  | 2026-04-09 08:29:50,495 INFO sqlalchemy.engine.Engine DELETE FROM notification_templates WHERE notification_templates.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,495 INFO sqlalchemy.engine.Engine [generated in 0.00009s] (UUID('82dc99fb-48cf-4bbd-8d57-8d534c6da68d'),)
+backend-1  | 2026-04-09 08:29:50,495 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49068 - "DELETE /api/v1/templates/82dc99fb-48cf-4bbd-8d57-8d534c6da68d HTTP/1.1" 204 No Content
+backend-1  | 2026-04-09 08:29:50,502 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,502 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,502 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,504 INFO sqlalchemy.engine.Engine SELECT notification_preferences.id, notification_preferences.user_id, notification_preferences.web_enabled, notification_preferences.email_enabled, notification_preferences.sms_enabled, notification_preferences.quiet_hours_start, notification_preferences.quiet_hours_end, notification_preferences.max_daily_notifications, notification_preferences.timezone, notification_preferences.digest_enabled, notification_preferences.digest_frequency, notification_preferences.created_at, notification_preferences.updated_at 
+backend-1  | FROM notification_preferences 
+backend-1  | WHERE notification_preferences.user_id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,504 INFO sqlalchemy.engine.Engine [generated in 0.00011s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,513 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49070 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+backend-1  | 2026-04-09 08:29:50,518 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,518 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,518 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,521 INFO sqlalchemy.engine.Engine SELECT notification_preferences.id, notification_preferences.user_id, notification_preferences.web_enabled, notification_preferences.email_enabled, notification_preferences.sms_enabled, notification_preferences.quiet_hours_start, notification_preferences.quiet_hours_end, notification_preferences.max_daily_notifications, notification_preferences.timezone, notification_preferences.digest_enabled, notification_preferences.digest_frequency, notification_preferences.created_at, notification_preferences.updated_at 
+backend-1  | FROM notification_preferences 
+backend-1  | WHERE notification_preferences.user_id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,521 INFO sqlalchemy.engine.Engine [cached since 0.01773s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,522 INFO sqlalchemy.engine.Engine ROLLBACK
+backend-1  | INFO:     172.18.0.1:49076 - "POST /api/v1/preferences HTTP/1.1" 409 Conflict
+backend-1  | 2026-04-09 08:29:50,527 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,527 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,528 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,531 INFO sqlalchemy.engine.Engine SELECT notification_preferences.id, notification_preferences.user_id, notification_preferences.web_enabled, notification_preferences.email_enabled, notification_preferences.sms_enabled, notification_preferences.quiet_hours_start, notification_preferences.quiet_hours_end, notification_preferences.max_daily_notifications, notification_preferences.timezone, notification_preferences.digest_enabled, notification_preferences.digest_frequency, notification_preferences.created_at, notification_preferences.updated_at 
+backend-1  | FROM notification_preferences 
+backend-1  | WHERE notification_preferences.user_id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,531 INFO sqlalchemy.engine.Engine [cached since 0.02704s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,532 INFO sqlalchemy.engine.Engine UPDATE notification_preferences SET digest_frequency=$1::digestfrequencyenum, updated_at=now() WHERE notification_preferences.id = $2::UUID
+backend-1  | 2026-04-09 08:29:50,532 INFO sqlalchemy.engine.Engine [generated in 0.00013s] ('weekly', UUID('4d5aff6a-527e-4328-979e-07f39ac63048'))
+backend-1  | 2026-04-09 08:29:50,534 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | 2026-04-09 08:29:50,536 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,536 INFO sqlalchemy.engine.Engine SELECT notification_preferences.id, notification_preferences.user_id, notification_preferences.web_enabled, notification_preferences.email_enabled, notification_preferences.sms_enabled, notification_preferences.quiet_hours_start, notification_preferences.quiet_hours_end, notification_preferences.max_daily_notifications, notification_preferences.timezone, notification_preferences.digest_enabled, notification_preferences.digest_frequency, notification_preferences.created_at, notification_preferences.updated_at 
+backend-1  | FROM notification_preferences 
+backend-1  | WHERE notification_preferences.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,536 INFO sqlalchemy.engine.Engine [generated in 0.00012s] (UUID('4d5aff6a-527e-4328-979e-07f39ac63048'),)
+backend-1  | 2026-04-09 08:29:50,537 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49084 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+backend-1  | 2026-04-09 08:29:50,543 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,543 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,543 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,544 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, title, message, priority, status, created_by, group_id, sent_at, read_at) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::notification_priority, $5::notification_status, $6::UUID, $7::UUID, $8::TIMESTAMP WITH TIME ZONE, $9::TIMESTAMP WITH TIME ZONE) RETURNING notifications.created_at
+backend-1  | 2026-04-09 08:29:50,544 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'), 'Snooze Test', 'Testing snooze functionality', 'low', 'sent', UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), None, None, None)
+backend-1  | 2026-04-09 08:29:50,545 INFO sqlalchemy.engine.Engine INSERT INTO notification_recipients (id, notification_id, user_id, delivery_status, delivered_at) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::delivery_status, $5::TIMESTAMP WITH TIME ZONE)
+backend-1  | 2026-04-09 08:29:50,545 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('f133eff5-4c68-4cdf-8fb9-a3c20b7ad1df'), UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'), UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), 'delivered', datetime.datetime(2026, 4, 9, 8, 29, 50, 545280, tzinfo=datetime.timezone.utc))
+backend-1  | 2026-04-09 08:29:50,546 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | 2026-04-09 08:29:50,547 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,548 INFO sqlalchemy.engine.Engine SELECT notifications.id, notifications.title, notifications.message, notifications.priority, notifications.status, notifications.created_by, notifications.group_id, notifications.created_at, notifications.sent_at, notifications.read_at 
+backend-1  | FROM notifications 
+backend-1  | WHERE notifications.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,548 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'),)
+backend-1  | 2026-04-09 08:29:50,550 INFO sqlalchemy.engine.Engine SELECT notification_recipients.user_id 
+backend-1  | FROM notification_recipients 
+backend-1  | WHERE notification_recipients.notification_id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,550 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'),)
+backend-1  | 2026-04-09 08:29:50,551 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49098 - "POST /api/v1/notifications HTTP/1.1" 201 Created
+backend-1  | 2026-04-09 08:29:50,556 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,557 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,557 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,558 INFO sqlalchemy.engine.Engine SELECT notifications.id, notifications.title, notifications.message, notifications.priority, notifications.status, notifications.created_by, notifications.group_id, notifications.created_at, notifications.sent_at, notifications.read_at 
+backend-1  | FROM notifications 
+backend-1  | WHERE notifications.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,559 INFO sqlalchemy.engine.Engine [generated in 0.00012s] (UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'),)
+backend-1  | 2026-04-09 08:29:50,560 INFO sqlalchemy.engine.Engine INSERT INTO notification_snoozes (id, notification_id, user_id, snoozed_until) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::TIMESTAMP WITH TIME ZONE) RETURNING notification_snoozes.created_at
+backend-1  | 2026-04-09 08:29:50,560 INFO sqlalchemy.engine.Engine [generated in 0.00015s] (UUID('6fb06e75-4c57-487d-9de6-d4e0210be33b'), UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'), UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), datetime.datetime(2026, 4, 9, 9, 29, 50, 552195, tzinfo=TzInfo(UTC)))
+backend-1  | 2026-04-09 08:29:50,562 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | 2026-04-09 08:29:50,564 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,565 INFO sqlalchemy.engine.Engine SELECT notification_snoozes.id, notification_snoozes.notification_id, notification_snoozes.user_id, notification_snoozes.snoozed_until, notification_snoozes.created_at 
+backend-1  | FROM notification_snoozes 
+backend-1  | WHERE notification_snoozes.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,565 INFO sqlalchemy.engine.Engine [generated in 0.00011s] (UUID('6fb06e75-4c57-487d-9de6-d4e0210be33b'),)
+backend-1  | 2026-04-09 08:29:50,566 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49106 - "POST /api/v1/snoozes HTTP/1.1" 201 Created
+backend-1  | 2026-04-09 08:29:50,572 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,572 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,572 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,573 INFO sqlalchemy.engine.Engine SELECT notifications.id, notifications.title, notifications.message, notifications.priority, notifications.status, notifications.created_by, notifications.group_id, notifications.created_at, notifications.sent_at, notifications.read_at 
+backend-1  | FROM notifications 
+backend-1  | WHERE notifications.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,573 INFO sqlalchemy.engine.Engine [cached since 0.01469s ago] (UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'),)
+backend-1  | 2026-04-09 08:29:50,574 INFO sqlalchemy.engine.Engine INSERT INTO notification_snoozes (id, notification_id, user_id, snoozed_until) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::TIMESTAMP WITH TIME ZONE) RETURNING notification_snoozes.created_at
+backend-1  | 2026-04-09 08:29:50,574 INFO sqlalchemy.engine.Engine [cached since 0.0139s ago] (UUID('89692090-b010-4a58-b1bb-feb44b2cabb9'), UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'), UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), datetime.datetime(2026, 4, 9, 9, 29, 50, 574110, tzinfo=datetime.timezone.utc))
+backend-1  | 2026-04-09 08:29:50,575 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | 2026-04-09 08:29:50,576 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,577 INFO sqlalchemy.engine.Engine SELECT notification_snoozes.id, notification_snoozes.notification_id, notification_snoozes.user_id, notification_snoozes.snoozed_until, notification_snoozes.created_at 
+backend-1  | FROM notification_snoozes 
+backend-1  | WHERE notification_snoozes.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,577 INFO sqlalchemy.engine.Engine [cached since 0.01216s ago] (UUID('89692090-b010-4a58-b1bb-feb44b2cabb9'),)
+backend-1  | 2026-04-09 08:29:50,577 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49120 - "POST /api/v1/snoozes/quick?notification_id=38a4674a-da38-4df6-bffa-847f0f1ae38d&duration=1h HTTP/1.1" 201 Created
+backend-1  | 2026-04-09 08:29:50,582 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,583 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,583 INFO sqlalchemy.engine.Engine [cached since 107.6s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,584 INFO sqlalchemy.engine.Engine SELECT notification_snoozes.id, notification_snoozes.notification_id, notification_snoozes.user_id, notification_snoozes.snoozed_until, notification_snoozes.created_at 
+backend-1  | FROM notification_snoozes 
+backend-1  | WHERE notification_snoozes.user_id = $1::UUID ORDER BY notification_snoozes.snoozed_until
+backend-1  | 2026-04-09 08:29:50,584 INFO sqlalchemy.engine.Engine [generated in 0.00013s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,586 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49128 - "GET /api/v1/snoozes HTTP/1.1" 200 OK
+backend-1  | INFO:     172.18.0.1:49144 - "GET /api/v1/snoozes/options HTTP/1.1" 200 OK
+backend-1  | 2026-04-09 08:29:50,594 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,595 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,595 INFO sqlalchemy.engine.Engine [cached since 107.7s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,596 INFO sqlalchemy.engine.Engine SELECT notification_snoozes.id, notification_snoozes.notification_id, notification_snoozes.user_id, notification_snoozes.snoozed_until, notification_snoozes.created_at 
+backend-1  | FROM notification_snoozes 
+backend-1  | WHERE notification_snoozes.notification_id = $1::UUID AND notification_snoozes.user_id = $2::UUID
+backend-1  | 2026-04-09 08:29:50,596 INFO sqlalchemy.engine.Engine [generated in 0.00013s] (UUID('38a4674a-da38-4df6-bffa-847f0f1ae38d'), UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'))
+backend-1  | 2026-04-09 08:29:50,597 INFO sqlalchemy.engine.Engine ROLLBACK
+backend-1  | INFO:     172.18.0.1:49146 - "DELETE /api/v1/snoozes/38a4674a-da38-4df6-bffa-847f0f1ae38d HTTP/1.1" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 715, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 735, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 301, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+backend-1  |     return await dependant.call(**values)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/snoozes.py", line 113, in unsnooze_notification
+backend-1  |     snooze = result.scalar_one_or_none()
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/result.py", line 1487, in scalar_one_or_none
+backend-1  |     return self._only_one_row(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/result.py", line 805, in _only_one_row
+backend-1  |     raise exc.MultipleResultsFound(
+backend-1  | sqlalchemy.exc.MultipleResultsFound: Multiple rows were found when one or none was required
+backend-1  | 2026-04-09 08:29:50,608 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+backend-1  | 2026-04-09 08:29:50,608 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.username, users.password_hash, users.is_active, users.created_at, users.updated_at 
+backend-1  | FROM users 
+backend-1  | WHERE users.id = $1::UUID
+backend-1  | 2026-04-09 08:29:50,608 INFO sqlalchemy.engine.Engine [cached since 107.7s ago] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,610 INFO sqlalchemy.engine.Engine SELECT count(notifications.id) AS count_1 
+backend-1  | FROM notifications JOIN notification_recipients ON notifications.id = notification_recipients.notification_id 
+backend-1  | WHERE notification_recipients.user_id = $1::UUID AND notifications.status != $2::notification_status
+backend-1  | 2026-04-09 08:29:50,610 INFO sqlalchemy.engine.Engine [generated in 0.00014s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), 'read')
+backend-1  | 2026-04-09 08:29:50,615 INFO sqlalchemy.engine.Engine SELECT count(notifications.id) AS count_1 
+backend-1  | FROM notifications 
+backend-1  | WHERE notifications.id IN (SELECT notification_recipients.notification_id 
+backend-1  | FROM notification_recipients 
+backend-1  | WHERE notification_recipients.user_id = $1::UUID)
+backend-1  | 2026-04-09 08:29:50,615 INFO sqlalchemy.engine.Engine [generated in 0.00018s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,617 INFO sqlalchemy.engine.Engine SELECT count(notifications.id) AS count_1 
+backend-1  | FROM notifications 
+backend-1  | WHERE notifications.id IN (SELECT notification_recipients.notification_id 
+backend-1  | FROM notification_recipients 
+backend-1  | WHERE notification_recipients.user_id = $1::UUID AND notification_recipients.delivery_status = $2::delivery_status)
+backend-1  | 2026-04-09 08:29:50,617 INFO sqlalchemy.engine.Engine [generated in 0.00015s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), 'read')
+backend-1  | 2026-04-09 08:29:50,620 INFO sqlalchemy.engine.Engine SELECT notifications.priority, count(notifications.id) AS count_1 
+backend-1  | FROM notifications 
+backend-1  | WHERE notifications.id IN (SELECT notification_recipients.notification_id 
+backend-1  | FROM notification_recipients 
+backend-1  | WHERE notification_recipients.user_id = $1::UUID) GROUP BY notifications.priority
+backend-1  | 2026-04-09 08:29:50,620 INFO sqlalchemy.engine.Engine [generated in 0.00017s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'),)
+backend-1  | 2026-04-09 08:29:50,623 INFO sqlalchemy.engine.Engine SELECT date(notifications.created_at) AS date, count(notifications.id) AS count 
+backend-1  | FROM notifications 
+backend-1  | WHERE notifications.id IN (SELECT notification_recipients.notification_id 
+backend-1  | FROM notification_recipients 
+backend-1  | WHERE notification_recipients.user_id = $1::UUID) AND notifications.created_at >= $2::TIMESTAMP WITH TIME ZONE GROUP BY date(notifications.created_at) ORDER BY date(notifications.created_at)
+backend-1  | 2026-04-09 08:29:50,623 INFO sqlalchemy.engine.Engine [generated in 0.00016s] (UUID('5035d7ac-a2bb-4b7c-87e2-5e956b00e064'), datetime.datetime(2026, 4, 2, 8, 29, 50, 622128, tzinfo=datetime.timezone.utc))
+backend-1  | 2026-04-09 08:29:50,626 INFO sqlalchemy.engine.Engine COMMIT
+backend-1  | INFO:     172.18.0.1:49148 - "GET /api/v1/notifications/stats HTTP/1.1" 200 OK

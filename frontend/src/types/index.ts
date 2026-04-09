@@ -30,6 +30,8 @@ export interface Notification {
   priority: Priority;
   status: NotificationStatus;
   created_by: string;
+  group_id: string | null;
+  group_name: string | null;
   created_at: string | null;
   sent_at: string | null;
   read_at: string | null;
@@ -51,4 +53,202 @@ export interface NotificationCreate {
 export interface WSMessage {
   type: string;
   data: Notification | Record<string, unknown>;
+}
+
+export type MemberRole = 'admin' | 'member';
+
+export interface GroupMember {
+  id: string;
+  user_id: string;
+  username: string;
+  email: string;
+  role: MemberRole;
+  joined_at: string | null;
+}
+
+export interface GroupCreate {
+  name: string;
+  description?: string;
+}
+
+export interface GroupUpdate {
+  name?: string;
+  description?: string;
+}
+
+export interface GroupResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  created_by: string;
+  created_at: string | null;
+  updated_at: string | null;
+  member_count: number;
+}
+
+export interface GroupDetailResponse extends GroupResponse {
+  members: GroupMember[];
+}
+
+export interface AddMemberRequest {
+  user_id: string;
+  role: MemberRole;
+}
+
+export interface GroupListResponse {
+  items: GroupResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface GroupMemberResponse extends GroupMember {}
+
+export interface EventCreate {
+  name: string;
+  description?: string;
+  title: string;
+  message: string;
+  priority?: string;
+  group_id?: string;
+  scheduled_at?: string;
+  is_recurring?: boolean;
+  recurrence_rule?: string;
+}
+
+export interface EventUpdate {
+  name?: string;
+  description?: string;
+  title?: string;
+  message?: string;
+  priority?: string;
+  group_id?: string;
+  scheduled_at?: string;
+  is_recurring?: boolean;
+  recurrence_rule?: string;
+}
+
+export interface EventResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  title: string;
+  message: string;
+  priority: string;
+  created_by: string;
+  group_id: string | null;
+  scheduled_at: string | null;
+  is_recurring: boolean;
+  recurrence_rule: string | null;
+  notification_id: string | null;
+  created_at: string | null;
+}
+
+export interface EventListResponse {
+  items: EventResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+// Templates
+export interface TemplateCreate {
+  name: string;
+  title_template: string;
+  message_template: string;
+  priority?: string;
+  category?: string;
+  is_public?: boolean;
+}
+
+export interface TemplateUpdate {
+  name?: string;
+  title_template?: string;
+  message_template?: string;
+  priority?: string;
+  category?: string;
+  is_public?: boolean;
+}
+
+export interface TemplateResponse {
+  id: string;
+  name: string;
+  title_template: string;
+  message_template: string;
+  priority: string;
+  category: string | null;
+  created_by: string;
+  is_public: boolean;
+  created_at: string | null;
+}
+
+export interface TemplateListResponse {
+  items: TemplateResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+// User Preferences
+export interface PreferencesCreate {
+  web_enabled?: boolean;
+  email_enabled?: boolean;
+  sms_enabled?: boolean;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  max_daily_notifications?: number;
+  timezone?: string;
+  digest_enabled?: boolean;
+  digest_frequency?: string | null;
+}
+
+export interface PreferencesUpdate {
+  web_enabled?: boolean;
+  email_enabled?: boolean;
+  sms_enabled?: boolean;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  max_daily_notifications?: number;
+  timezone?: string;
+  digest_enabled?: boolean;
+  digest_frequency?: string | null;
+}
+
+export interface PreferencesResponse {
+  id: string;
+  user_id: string;
+  web_enabled: boolean;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  max_daily_notifications: number;
+  timezone: string;
+  digest_enabled: boolean;
+  digest_frequency: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+// Snoozes
+export interface SnoozeCreate {
+  notification_id: string;
+  snoozed_until: string;
+}
+
+export interface SnoozeResponse {
+  id: string;
+  notification_id: string;
+  user_id: string;
+  snoozed_until: string;
+  created_at: string;
+}
+
+export interface SnoozeOption {
+  label: string;
+  value: string;
+}
+
+export interface SnoozeOptions {
+  options: SnoozeOption[];
 }
