@@ -1,354 +1,215 @@
 # Smart Notification Manager
 
-A full-stack notification management system with FastAPI backend, React frontend, PostgreSQL, Redis, and Celery for scheduled/real-time delivery.
+Full-stack real-time notification management system with scheduled delivery, group targeting, analytics, and user preferences.
+
+## Demo
+
+![Notifications](pictures/Notifications_Notifications.png)
+![Analytics](pictures/Notifications_Analytics.png)
+
+*A real-time notification feed with WebSocket delivery, interactive analytics charts, and a settings panel for user preferences.*
+
+---
+
+## Product Context
+
+### End Users
+- **Team leads and managers** who need to broadcast updates to team members instantly
+- **IT/DevOps engineers** who monitor system alerts and scheduled maintenance windows
+- **Students and professionals** who want a centralized notification hub instead of scattered messages across multiple apps
+- **Any user** who needs to schedule reminders, set quiet hours, or track notification read rates
+
+### Problem It Solves
+Important notifications get lost in email inboxes, chat streams, or browser tabs. Users miss time-sensitive updates, receive notifications at inconvenient hours, and have no way to schedule future announcements or track delivery metrics.
+
+### Our Solution
+A single web-based notification dashboard where users can:
+- **Receive** notifications in real-time via WebSocket
+- **Schedule** notifications for future delivery via Celery workers
+- **Target** specific groups or individuals
+- **Control** when they get notified (quiet hours, daily limits, digest mode)
+- **Track** delivery metrics through an analytics dashboard
+
+---
 
 ## Features
 
-### V1: Real-Time Notification Dashboard ✅
-- User authentication (register/login) with JWT + HTTP-only cookies
-- Rate limiting (5 attempts/min) on auth endpoints
-- Argon2 password hashing
-- Create notifications with priority levels (low, medium, high, critical)
-- Real-time delivery via WebSocket with heartbeat ping/pong
-- Notification list with pagination, filtering, and mark-as-read
-- Toast popup for new notifications
-- WebSocket reconnection with exponential backoff
-- Quick snooze menu (15m, 1h, 4h, 1d, 1w) on individual notifications
-- Clean, responsive UI with TailwindCSS
+### Implemented
 
-### V2: Smart Notification Management Platform ✅
-- **Groups** — Create notification groups, manage members (admin/member roles), send to entire groups
-- **Events** — Schedule notifications for future dates, Celery worker fires at the correct time
-- **Templates** — Create/edit/delete reusable notification templates with categories, public/private visibility
-- **Preferences** — Per-user settings: channel toggles (web/email/SMS), quiet hours, daily limits, timezone, digest frequency
-- **Analytics** — Interactive dashboard with charts (Recharts): daily activity line chart, priority distribution pie chart, read vs unread bar chart
-- **Snooze** — Quick snooze presets + custom snooze times, list active snoozes, unsnooze
-- **Production Deployment** — Nginx reverse proxy, Celery Beat scheduler, Flower monitoring dashboard
+| Category | Feature | Status |
+|----------|---------|--------|
+| **Auth** | Register/login/logout with JWT + HTTP-only cookies | ✅ |
+| **Auth** | Argon2 password hashing, rate limiting | ✅ |
+| **Notifications** | Create with priority levels (low/medium/high/critical) | ✅ |
+| **Notifications** | Real-time WebSocket delivery with auto-reconnect | ✅ |
+| **Notifications** | Mark as read, mark all as read | ✅ |
+| **Notifications** | Quick snooze (15m/1h/4h/1d/1w) per notification | ✅ |
+| **Notifications** | Periodic auto-refresh (10s) as WebSocket fallback | ✅ |
+| **Groups** | CRUD + member management (admin/member roles) | ✅ |
+| **Events** | Schedule notifications for future date/time | ✅ |
+| **Events** | Celery worker fires at scheduled time, marks as `sent` | ✅ |
+| **Events** | Celery task revocation on event update/delete | ✅ |
+| **Templates** | CRUD with categories, public/private visibility | ✅ |
+| **Preferences** | Channel toggles, quiet hours, daily limits, timezone, digest | ✅ |
+| **Analytics** | Line chart (daily activity), pie chart (by priority), bar chart (read vs unread) | ✅ |
+| **Infrastructure** | Docker Compose, Nginx reverse proxy, Redis, Celery Beat | ✅ |
+| **Database** | Alembic migrations, indexed queries | ✅ |
 
----
+### Not Yet Implemented
 
-## Quick Start
-
-### Prerequisites
-- Docker & Docker Compose
-
-### Setup
-
-1. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-
-2. **Start all services (development)**
-   ```bash
-   docker compose up -d --build
-   ```
-
-3. **Start production deployment (with Nginx + Celery Beat)**
-   ```bash
-   docker compose -f docker-compose.yml -f docker-compose.v2.yml --profile production up -d
-   ```
-
-4. **Access the application**
-   - **Frontend (dev)**: http://localhost:3000
-   - **Frontend (prod via Nginx)**: http://localhost:80
-   - **API Docs**: http://localhost:8000/docs (dev) or http://localhost/docs (prod)
-   - **Health**: http://localhost:8000/health or http://localhost/health
+| Feature | Description |
+|---------|-------------|
+| Email notifications | SMTP delivery channel |
+| SMS notifications | SMS gateway integration |
+| Recurring events | iCal RRULE parsing and re-scheduling |
+| Notification digests | Scheduled summary emails |
+| Template variable substitution | Auto-fill `{variables}` in templates |
+| Unit tests | pytest + Vitest test suites |
+| Audit logging | Track CRUD operations on entities |
 
 ---
 
-## Services
+## Usage
 
-### Development (V1 + V2)
+### Quick Start (Development)
 
-| Service         | Port  | Description                    |
-|-----------------|-------|--------------------------------|
-| frontend        | 3000  | React Vite dev server          |
-| backend         | 8000  | FastAPI API server             |
-| db              | 5432  | PostgreSQL database            |
-| redis           | 6379  | Redis (Celery broker/cache)    |
-| celery-worker   | —     | Background task processor      |
-
-### Production (V2 extras)
-
-| Service         | Port  | Description                    |
-|-----------------|-------|--------------------------------|
-| nginx           | 80    | Reverse proxy for frontend/API |
-| celery-beat     | —     | Scheduled task scheduler       |
-| flower          | 5555  | Celery monitoring dashboard    |
-
----
-
-## API Endpoints
-
-### Health
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET`  | `/health` | Simple health check |
-| `GET`  | `/api/v1/health` | Detailed health with service info |
-
-### Authentication
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/auth/register` | Register new user |
-| `POST` | `/api/v1/auth/login` | Login (returns token + sets HTTP-only cookie) |
-| `POST` | `/api/v1/auth/logout` | Logout and clear cookie |
-| `GET`  | `/api/v1/auth/me` | Get current user info |
-| `GET`  | `/api/v1/auth/ws-token` | Get JWT token for WebSocket auth |
-
-### Notifications
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/notifications` | Create notification |
-| `GET`  | `/api/v1/notifications` | List (paginated, filterable by status) |
-| `GET`  | `/api/v1/notifications/{id}` | Get by ID |
-| `PUT`  | `/api/v1/notifications/{id}/read` | Mark as read |
-| `PUT`  | `/api/v1/notifications/read-all` | Mark all as read |
-| `GET`  | `/api/v1/notifications/stats` | Full analytics (total, read rate, by priority, daily activity) |
-
-### Groups
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET`  | `/api/v1/groups` | List user's groups |
-| `POST` | `/api/v1/groups` | Create group |
-| `GET`  | `/api/v1/groups/{id}` | Get group details |
-| `PUT`  | `/api/v1/groups/{id}` | Update group |
-| `DELETE` | `/api/v1/groups/{id}` | Delete group |
-| `POST` | `/api/v1/groups/{id}/members` | Add member |
-| `DELETE` | `/api/v1/groups/{id}/members/{user_id}` | Remove member |
-
-### Events
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/events` | Create scheduled event (queues Celery task) |
-| `GET`  | `/api/v1/events` | List events (paginated) |
-| `GET`  | `/api/v1/events/{id}` | Get event details |
-| `PUT`  | `/api/v1/events/{id}` | Update event (revokes + reschedules Celery task) |
-| `DELETE` | `/api/v1/events/{id}` | Delete event (revokes Celery task) |
-
-### Templates
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET`  | `/api/v1/templates` | List templates (public + user's own) |
-| `POST` | `/api/v1/templates` | Create template |
-| `GET`  | `/api/v1/templates/{id}` | Get template |
-| `PUT`  | `/api/v1/templates/{id}` | Update template (owner only) |
-| `DELETE` | `/api/v1/templates/{id}` | Delete template (owner only) |
-
-### Preferences
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET`  | `/api/v1/preferences` | Get user preferences (auto-creates defaults) |
-| `POST` | `/api/v1/preferences` | Create initial preferences |
-| `PUT`  | `/api/v1/preferences` | Update preferences |
-
-### Snoozes
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/snoozes` | Snooze notification until specific time |
-| `POST` | `/api/v1/snoozes/quick?notification_id=&duration=` | Quick snooze (15m, 1h, 4h, 1d, 1w) |
-| `GET`  | `/api/v1/snoozes` | List active snoozes |
-| `GET`  | `/api/v1/snoozes/options` | Get available quick snooze options |
-| `DELETE` | `/api/v1/snoozes/{notification_id}` | Remove snooze (wake up now) |
-
-### WebSocket
-| Protocol | Path | Description |
-|----------|------|-------------|
-| `WS`     | `/ws/notifications?token=<jwt>` | Real-time notification stream |
-
----
-
-## Frontend Pages
-
-| Page | URL | Description |
-|------|-----|-------------|
-| Notifications | `/notifications` | Real-time notification feed with filters, snooze, mark-as-read |
-| Groups | `/groups` | Create/manage notification groups and members |
-| Events | `/events` | Schedule notifications for future delivery |
-| Templates | `/templates` | Browse, create, and manage notification templates |
-| Analytics | `/analytics` | Interactive charts: activity, priority distribution, read rate |
-| Settings | `/settings` | User preferences: channels, quiet hours, timezone, digests |
-
----
-
-## Tech Stack
-
-### Backend
-- **Python 3.12** / **FastAPI 0.115** / **Pydantic v2**
-- **SQLAlchemy 2.0** (async) + **Alembic** (migrations)
-- **Celery + Redis** — background task processing
-- **Argon2** password hashing, **PyJWT** authentication
-- **SlowApi** rate limiting, **asyncpg** PostgreSQL driver
-- **psycopg2-binary** — sync PostgreSQL driver for Celery workers
-
-### Frontend
-- **React 18** + **TypeScript** + **Vite**
-- **TailwindCSS** — styling
-- **Zustand** — state management
-- **React Router** — navigation
-- **Recharts** — analytics charts
-- **Axios** — HTTP client with cookie auth
-
-### Infrastructure
-- **PostgreSQL 16** — primary database
-- **Redis 7** — Celery broker, WebSocket pub/sub
-- **Docker & Docker Compose** — containerization
-- **Nginx 1.25** — production reverse proxy
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Frontend (React)                        │
-│                    http://localhost:3000                     │
-└────────────────────────┬────────────────────────────────────┘
-                         │ HTTP / WebSocket
-┌────────────────────────▼────────────────────────────────────┐
-│                    Backend (FastAPI)                         │
-│                    http://localhost:8000                     │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │   REST API   │  │  WebSocket   │  │  Celery Workers  │  │
-│  └──────────────┘  └──────────────┘  └──────────────────┘  │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-          ┌──────────────┴──────────────┐
-          ▼                             ▼
-┌──────────────────┐          ┌──────────────────┐
-│   PostgreSQL     │          │      Redis       │
-│   (port 5432)    │          │   (port 6379)    │
-└──────────────────┘          └──────────────────┘
-```
-
----
-
-## Development
-
-### Database migrations
 ```bash
-# Create new migration
-docker compose exec backend alembic revision --autogenerate -m "description"
+# 1. Clone and configure
+git clone <repo-url> se-toolkit-hackathon
+cd se-toolkit-hackathon
+cp .env.example .env
 
-# Apply migrations
-docker compose exec backend alembic upgrade head
+# 2. Start all services
+docker compose up -d --build
 
-# Rollback one migration
-docker compose exec backend alembic downgrade -1
+# 3. Access the app
+# Frontend:  http://localhost:3000
+# API Docs:  http://localhost:8000/docs
+# Health:    http://localhost:8000/health
 ```
 
-### Testing
-```bash
-pip install requests websocket-client
-python test_api.py          # Full API test suite
-python test_scheduled_event.py  # Scheduled event delivery test
-```
+### User Flow
 
-### API testing with curl
+1. **Register** a new account at http://localhost:3000/register
+2. **Login** and land on the Notifications dashboard
+3. **Create a notification** via the API or WebSocket — it appears instantly
+4. **Create a group**, add members, send group notifications
+5. **Schedule an event** — notification fires at the chosen date/time
+6. **Browse templates** and reuse common notification patterns
+7. **Adjust preferences** in Settings (quiet hours, daily limits, timezone)
+8. **View analytics** to track read rates and notification volume
+
+### API Testing
+
 ```bash
-# Login (saves cookie)
+# Register
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@test.com","username":"user","password":"SecurePass1!"}'
+
+# Login (saves HTTP-only cookie)
 curl -c cookies.txt -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"TestPass123!"}'
-
-# List notifications (uses saved cookie)
-curl -b cookies.txt http://localhost:8000/api/v1/notifications
+  -d '{"email":"user@test.com","password":"SecurePass1!"}'
 
 # Create notification
 curl -b cookies.txt -X POST http://localhost:8000/api/v1/notifications \
   -H "Content-Type: application/json" \
-  -d '{"title":"Test","message":"Hello","priority":"high"}'
-```
+  -d '{"title":"Alert","message":"System update in 1 hour","priority":"high"}'
 
-### View Celery worker logs
-```bash
-docker compose logs -f celery-worker
-```
-
-### View Celery Beat logs (V2)
-```bash
-docker compose -f docker-compose.yml -f docker-compose.v2.yml logs -f celery-beat
+# List notifications
+curl -b cookies.txt http://localhost:8000/api/v1/notifications
 ```
 
 ---
 
-## Project Structure
+## Deployment
 
-```
-hackaton/
-├── backend/
-│   ├── app/
-│   │   ├── api/             # auth, notifications, groups, events,
-│   │   │                    # templates, preferences, snoozes,
-│   │   │                    # broadcast, websocket, health, users
-│   │   ├── core/            # security.py, websocket.py
-│   │   ├── models/          # user, notification, group, event,
-│   │   │                    # template, preference, snooze
-│   │   ├── schemas/         # Matching Pydantic schemas
-│   │   ├── services/        # notification_service.py
-│   │   ├── celery_app.py    # Celery app + scheduled notification task
-│   │   ├── config.py        # Environment settings
-│   │   ├── database.py      # Async DB engine & session
-│   │   └── main.py          # FastAPI app entry point
-│   ├── alembic/             # Database migrations
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── pip.conf             # PyPI mirror config
-├── frontend/
-│   ├── src/
-│   │   ├── api/             # client, auth, notifications, groups,
-│   │   │                    # events, templates, preferences, snoozes, ws
-│   │   ├── components/      # NavBar.tsx
-│   │   ├── hooks/           # useAuth, useWebSocket
-│   │   ├── pages/           # Login, Register, Notifications, Groups,
-│   │   │                    # Events, Templates, Analytics, Settings
-│   │   ├── stores/          # authStore, notificationStore
-│   │   └── types/           # TypeScript interfaces
-│   ├── Dockerfile
-│   └── vite.config.ts
-├── nginx/
-│   ├── Dockerfile
-│   └── nginx.conf           # Production reverse proxy config
-├── scripts/
-│   └── init-db.sql
-├── docker-compose.yml       # Main compose (dev)
-├── docker-compose.v2.yml    # V2 additions (nginx, celery-beat, flower)
-├── .env.example
-├── test_api.py              # Comprehensive API test suite
-└── test_scheduled_event.py  # Scheduled event delivery test
+### Target Platform
+- **OS**: Ubuntu 24.04 LTS (or equivalent Linux distribution)
+- **Architecture**: x86_64 / amd64
+
+### Prerequisites (what must be installed on the VM)
+
+```bash
+# Docker Engine
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+
+# Docker Compose plugin (included in Docker Desktop / official apt repo)
+sudo apt install docker-compose-plugin -y
+
+# Verify installation
+docker --version          # 27+
+docker compose version    # 2.29+
 ```
 
----
+No other software needs to be installed on the host — all services run in containers.
 
-## Environment Variables
+### Step-by-Step Deployment
 
-```env
-# JWT
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-JWT_ALGORITHM=HS256
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
-JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+```bash
+# 1. Clone the repository
+git clone <repo-url> se-toolkit-hackathon
+cd se-toolkit-hackathon
 
-# Database
-DB_USER=user
-DB_PASSWORD=password
-DATABASE_URL=postgresql+asyncpg://user:password@db:5432/notifications
+# 2. Configure environment
+cp .env.example .env
+# Edit .env and change JWT_SECRET, DB_PASSWORD for production
+```
 
-# Redis
-REDIS_URL=redis://redis:6379/0
+#### Option A: Development Mode (hot-reload, no reverse proxy)
 
-# CORS
-CORS_ORIGINS=http://localhost:8000,http://localhost:3000,http://localhost:80
+```bash
+docker compose up -d --build
 
-# Application
-APP_NAME=Smart Notification Manager
-APP_VERSION=2.0.0
-DEBUG=true
-ENVIRONMENT=development
+# Services available on:
+#   Frontend: http://<host-ip>:3000
+#   API:      http://<host-ip>:8000
+#   API Docs: http://<host-ip>:8000/docs
+```
+
+#### Option B: Production Mode (Nginx reverse proxy, Celery Beat)
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.v2.yml --profile production up -d
+
+# Services available on:
+#   Frontend + API: http://<host-ip>   (port 80, via Nginx)
+#   Flower (Celery monitoring): http://<host-ip>:5555
+```
+
+### Services Running
+
+| Service        | Dev Port | Prod Port | Description                    |
+|----------------|----------|-----------|--------------------------------|
+| Frontend       | 3000     | 80 (nginx)| React app with Vite HMR        |
+| Backend        | 8000     | 80 (nginx)| FastAPI API server             |
+| PostgreSQL     | 5432     | internal  | Primary database               |
+| Redis          | 6379     | internal  | Celery broker + WebSocket cache|
+| Celery Worker  | —        | internal  | Background task processor      |
+| Celery Beat    | —        | internal  | Scheduled task scheduler       |
+| Nginx          | —        | 80        | Production reverse proxy       |
+
+### Exposing Ports to Host (for development access to DB/Redis)
+
+The `docker-compose.yml` already maps ports 5432, 6379, 3000, and 8000 to the host. In production mode, remove the port mappings from frontend/backend and access everything through Nginx on port 80.
+
+### Stopping Services
+
+```bash
+# Development
+docker compose down
+
+# Production
+docker compose -f docker-compose.yml -f docker-compose.v2.yml --profile production down
+
+# Remove volumes (deletes all data)
+docker compose down -v
 ```
 
 ---
 
 ## License
 
-See [LICENSE](LICENSE) for details.
+This project is open-source under the [MIT License](LICENSE).
