@@ -128,7 +128,7 @@ async def get_user_notifications(
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Notification], int]:
-    """Get paginated list of notifications for a user."""
+    """Get paginated list of notifications for a user. Excludes 'pending' by default."""
     import uuid
     base_query = (
         select(Notification)
@@ -136,8 +136,11 @@ async def get_user_notifications(
         .where(NotificationRecipient.user_id == user_id)
     )
 
+    # Exclude pending notifications unless explicitly requested
     if status_filter:
         base_query = base_query.where(Notification.status == status_filter)
+    else:
+        base_query = base_query.where(Notification.status != NotificationStatusEnum.pending)
 
     if group_id:
         base_query = base_query.where(Notification.group_id == uuid.UUID(group_id))

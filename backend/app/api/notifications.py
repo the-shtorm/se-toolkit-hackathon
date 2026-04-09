@@ -83,38 +83,38 @@ async def get_stats(
     current_user: CurrentUser,
     db: CurrentDB,
 ):
-    """Get notification statistics for dashboard analytics."""
+    """Get notification statistics for dashboard analytics. Excludes pending (scheduled) notifications."""
     from datetime import datetime, timedelta, timezone
 
-    # Unread count
+    # Unread count (excludes pending)
     unread_count = await notification_service.get_unread_count(
         db=db,
         user_id=current_user.id,
     )
 
-    # Total notifications
+    # Total notifications (excludes pending)
     total_result = await db.execute(
         select(func.count(Notification.id)).where(Notification.id.in_(
             select(NotificationRecipient.notification_id).where(
                 NotificationRecipient.user_id == current_user.id
             )
-        ))
+        )).where(Notification.status != NotificationStatusEnum.pending)
     )
     total = total_result.scalar() or 0
 
-    # Read rate
+    # Read rate (excludes pending)
     read_result = await db.execute(
         select(func.count(Notification.id)).where(Notification.id.in_(
             select(NotificationRecipient.notification_id).where(
                 NotificationRecipient.user_id == current_user.id,
                 NotificationRecipient.delivery_status == "read",
             )
-        ))
+        )).where(Notification.status != NotificationStatusEnum.pending)
     )
     read_count = read_result.scalar() or 0
     read_rate = round((read_count / total * 100), 1) if total > 0 else 0
 
-    # By priority
+    # By priority (excludes pending)
     priority_result = await db.execute(
         select(Notification.priority, func.count(Notification.id))
         .where(Notification.id.in_(
@@ -122,11 +122,12 @@ async def get_stats(
                 NotificationRecipient.user_id == current_user.id
             )
         ))
+        .where(Notification.status != NotificationStatusEnum.pending)
         .group_by(Notification.priority)
     )
     by_priority = {row[0]: row[1] for row in priority_result.all()}
 
-    # Last 7 days activity
+    # Last 7 days activity (excludes pending)
     seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
     daily_result = await db.execute(
         select(
@@ -139,6 +140,7 @@ async def get_stats(
             )
         ))
         .where(Notification.created_at >= seven_days_ago)
+        .where(Notification.status != NotificationStatusEnum.pending)
         .group_by(func.date(Notification.created_at))
         .order_by(func.date(Notification.created_at))
     )

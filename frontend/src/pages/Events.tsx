@@ -318,7 +318,9 @@ export default function EventsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Schedule Time</label>
                   <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm" />
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                    min={new Date().toISOString().slice(0, 16)}
+                    step="60" />
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -402,7 +404,9 @@ export default function EventsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Schedule Time</label>
                   <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm" />
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                    min={new Date().toISOString().slice(0, 16)}
+                    step="60" />
                 </div>
               </div>
               <div className="flex items-center gap-2">
